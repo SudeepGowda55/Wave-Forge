@@ -1,0 +1,3 @@
+.vscode
+postgresql-neondb.session.sql
+authentication_service/.env
