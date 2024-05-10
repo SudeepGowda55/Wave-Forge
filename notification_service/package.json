@@ -1,0 +1,8 @@
+{
+  "name": "notification_service",
+  "version": "1.0.0",
+  "description": "notification service using express js",
+  "main": "index.js",
+  "author": "sudeepgowda",
+  "license": "MIT"
+}

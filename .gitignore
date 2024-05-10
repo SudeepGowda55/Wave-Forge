@@ -1,3 +1,5 @@
 .vscode
 postgresql-neondb.session.sql
 authentication_service/.env
+converter-service/venv
+gateway-service/.env

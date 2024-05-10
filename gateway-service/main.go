@@ -4,6 +4,9 @@ import (
 	"io"
 	"net/http"
 
+	"Audio_Conversion-Microservice/gateway-service/db"
+	"Audio_Conversion-Microservice/gateway-service/utils"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,28 +29,24 @@ func signup(contextProvider *gin.Context) {
 	contextProvider.JSON(200, "SIGNUP")
 }
 
-func upload(contextProvider *gin.Context) {
-	contextProvider.JSON(200, "UPLOAD")
-}
-
 func conversionCompleted(contextProvider *gin.Context) {
 	contextProvider.JSON(200, "CONVERSION COMPLETED")
-}
-
-func download(contextProvider *gin.Context) {
-	contextProvider.JSON(200, "DOWNLOAD")
 }
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 
+	utils.Loadenv()
+	db.Connection()
+	db.CreateBucket()
+
 	router := gin.Default()
 
 	router.POST("/login", login)
 	router.POST("/signup", signup)
-	router.POST("/upload", upload)
+	router.POST("/upload", db.UploadFile)
 	router.GET("/conversioncompleted", conversionCompleted)
-	router.POST("/download", download)
+	router.POST("/download/:id", db.DownloadFile)
 
 	router.Run(":8001")
 }
