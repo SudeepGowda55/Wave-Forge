@@ -2,4 +2,6 @@
 postgresql-neondb.session.sql
 authentication_service/.env
 converter-service/venv
+converter-service/__pycache__
 gateway-service/.env
+notification_service/node_modules
