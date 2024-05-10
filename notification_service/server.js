@@ -13,6 +13,6 @@ app.get("/", (req, res) => {
     res.send("Notification Service running");
 })
 
-app.listen(8004, () => {
-    console.log("Server Running at port 8004");
+app.listen(process.env.APP_PORT, () => {
+    console.log("Server Running at port 8003");
 })
