@@ -1,9 +1,8 @@
 import sys
-from dotenv import load_dotenv
+from rabbitmq import pikapc
 
 def main():
-    load_dotenv()
-    print("Hello, world!")
+    pikapc.consume_from_file_uploaded_queue()
 
 if __name__ == "__main__":
     try:
