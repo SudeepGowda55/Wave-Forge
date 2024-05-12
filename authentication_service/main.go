@@ -30,9 +30,10 @@ func signup(context *gin.Context) {
 	}
 }
 
-func login(context *gin.Context) {
+func login(contextProvider *gin.Context) {
+	fmt.Println(contextProvider)
 	createJWT()
-	context.IndentedJSON(http.StatusOK, gin.H{"message": "login"})
+	contextProvider.IndentedJSON(http.StatusOK, "JWT Created Successfully")
 }
 
 func validatejwt(context *gin.Context) {
@@ -61,5 +62,5 @@ func main() {
 	router.POST("/login", login)
 	router.POST("/validate", validatejwt)
 
-	router.Run(":8000")
+	router.Run(":8001")
 }

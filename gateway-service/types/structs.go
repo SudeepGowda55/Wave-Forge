@@ -14,3 +14,16 @@ type GridfsFile struct {
 //  "filename":"monisha.txt",
 //  "metadata":{"userid":"sudeep@gmail.com"}
 // }
+
+type UserLoginData struct {
+	UserMail string `json:"usermail"`
+	Password string `json:"password"`
+}
+
+type UserSignupData struct {
+	UserMail  string `json:"usermail"`
+	Password  string `json:"password"`
+	FirstName string `json:"firstname"`
+	LastName  string `json:"lastname"`
+	UserName  string `json:"username"`
+}
