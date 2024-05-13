@@ -15,6 +15,7 @@ channel = connection.channel()
 # Declare the queue
 channel.queue_declare(queue='file_uploaded')
 
+#run this file in another called connections and import it from there, dont forget to put --init.py--
 def connect_to_mongodb():
     client = MongoClient('mongodb_connection_url') 
     #this should be fetched from the dashboard of mongodb
@@ -22,13 +23,15 @@ def connect_to_mongodb():
     fs = GridFS(db)
     return fs
 
+#replace this command use put  instead
 def push_to_mongodb(audio_data, fs, file_id):
     fs.put(audio_data, filename=f"{file_id}.mp3")
     print("Output file pushed to MongoDB GridFS.")
 
 
 def convert_video_to_audio(email, conversion_type , file_id):
-    fs = connect_to_mongodb()
+    fs = connect_to_mongodb() 
+    #repeated connections to be avoided
     video_file = fs.find_one({'_id':ObjectId(file_id)})
     
     if not video_file:
@@ -39,6 +42,7 @@ def convert_video_to_audio(email, conversion_type , file_id):
     if conversion_type.lower() == 'mp3_to_wav':
         audio_clip = video_bytes.audio()
         audio_data = audio_clip.write_to_memory(format="mp3")
+        #what's the file_id bro?
         push_to_mongodb(audio_data,fs,file_id)
         #if this doesnt work we'll use video_file
         print("Conversion successful. Output file pushed to MongoDB GridFS.")
@@ -64,6 +68,7 @@ def change_audio_sampling_rate(email,sampling_rate,file_id):
     audio_bytes = audio_file.read()
     audio = AudioSegment.from_file(io.BytesIO(audio_bytes))
 
+    #no taking inputs from user!! change
     if sampling_rate == 'custom':
         custom_sampling_rate = input("Enter the custom sampling rate in Hz: ")
         try:
@@ -90,6 +95,7 @@ def change_audio_sampling_rate(email,sampling_rate,file_id):
     print(f"Conversion successful. Output file saved to the database with file_id {new_file_id}")
     return new_file_id
 
+#put all this in a conversion folder
 def convert_wav_to_mp3(email, file_id):
     fs = connect_to_mongodb()
     audio_file = fs.find_one({'_id':ObjectId(file_id)})
