@@ -19,3 +19,16 @@ type JWTPayload struct {
 	CustomClaims string
 	jwt.RegisteredClaims
 }
+
+// To upload File Data to userfiles table
+type FileId struct {
+	UserMail string `json:"usermail"`
+	FileId   string `json:"fileid"`
+	FileName string `json:"filename"`
+}
+
+// To retrive File Data from userfiles table
+type File struct {
+	FileId   string `json:"fileid"`
+	FileName string `json:"filename"`
+}

@@ -3,6 +3,7 @@ package main
 import (
 	"Audio_Conversion-Microservice/authentication_service/auth"
 	"Audio_Conversion-Microservice/authentication_service/database"
+	"Audio_Conversion-Microservice/authentication_service/utils"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,8 @@ func main() {
 	router.POST("/signup", auth.Signup)
 	router.POST("/login", auth.Login)
 	router.POST("/validate", auth.ValidateJWT)
+	router.POST("/fileentry", utils.FileEntry)
+	router.POST("/getfiles", utils.GetFiles)
 
 	router.Run(":8001")
 }

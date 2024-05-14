@@ -1,9 +1,7 @@
 package db
 
 import (
-	"Audio_Conversion-Microservice/gateway-service/types"
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -31,7 +29,7 @@ func UploadFile(contextProvider *gin.Context) {
 	file, fileMetadata, err := contextProvider.Request.FormFile("sourcefile")
 
 	if err != nil {
-		contextProvider.JSON(500, "INTERNAL SERVER ERROR, FILE NOT FOUND")
+		contextProvider.JSON(500, err.Error())
 	}
 
 	userID := options.GridFSUpload().SetMetadata(bson.D{{Key: "userid", Value: "sudeep@gmail.com"}})
@@ -39,34 +37,36 @@ func UploadFile(contextProvider *gin.Context) {
 	objectID, err := gridfsBucket.UploadFromStream(fileMetadata.Filename, io.Reader(file), userID)
 
 	if err != nil {
-		contextProvider.JSON(500, "INTERNAL SERVER ERROR, FILE NOT UPLOADED")
+		contextProvider.JSON(500, err.Error())
 	}
 
 	contextProvider.JSON(201, "File Successfully Uploaded with the ObjectID: "+objectID.String())
 }
 
-func FindFileName(contextProvider *gin.Context) string {
-	filter := bson.D{{Key: "metadata", Value: bson.D{{Key: "userid", Value: "sudeep@gmail.com"}}}}
+// No need of this
 
-	cursor, err := gridfsBucket.Find(filter)
+// func FindFileName(contextProvider *gin.Context) string {
+// 	filter := bson.D{{Key: "metadata", Value: bson.D{{Key: "userid", Value: "sudeep@gmail.com"}}}}
 
-	if err != nil {
-		contextProvider.JSON(500, "FILE NOT FOUND")
-		// return
-	}
+// 	cursor, err := gridfsBucket.Find(filter)
 
-	var files []types.GridfsFile
+// 	if err != nil {
+// 		contextProvider.JSON(500, "FILE NOT FOUND")
+// 		// return
+// 	}
 
-	if err = cursor.All(context.TODO(), &files); err != nil {
-		contextProvider.JSON(500, "INTERNAL SERVER ERROR, FILE NOT FOUND")
-	}
+// 	var files []types.GridfsFile
 
-	for _, file := range files {
-		return file.FileName
-	}
+// 	if err = cursor.All(context.TODO(), &files); err != nil {
+// 		contextProvider.JSON(500, "INTERNAL SERVER ERROR, FILE NOT FOUND")
+// 	}
 
-	return "filename"
-}
+// 	for _, file := range files {
+// 		return file.FileName
+// 	}
+
+// 	return "filename"
+// }
 
 func DownloadFile(contextProvider *gin.Context) {
 	id := contextProvider.Param("id")
@@ -82,9 +82,9 @@ func DownloadFile(contextProvider *gin.Context) {
 		contextProvider.JSON(500, "FILE NOT FOUND")
 	}
 
-	filename := FindFileName(contextProvider)
+	// filename := FindFileName(contextProvider)
 
-	contextProvider.JSON(200, filename)
+	// contextProvider.JSON(200, filename)
 	// contextProvider.Data(200, "file Data", buffer.Bytes())
 }
 
@@ -101,4 +101,8 @@ func DeleteFile(contextProvider *gin.Context) {
 	}
 
 	contextProvider.JSON(200, "FILE DELETED SUCCESSFULLY")
+}
+
+func ConversionCompleted(contextProvider *gin.Context) {
+	contextProvider.JSON(200, "CONVERSION COMPLETED")
 }

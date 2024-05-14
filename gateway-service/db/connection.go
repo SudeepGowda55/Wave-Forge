@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -27,8 +26,4 @@ func Connection() {
 	MongodbClient = client
 
 	fmt.Println("Connected to MongoDB successfully!")
-}
-
-func ConversionCompleted(contextProvider *gin.Context) {
-	contextProvider.JSON(200, "CONVERSION COMPLETED")
 }
