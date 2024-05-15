@@ -14,7 +14,7 @@ async function sendMail(message) {
             from: "Matcrypt <noreply@matcrypt.live>",
             to: [message.usermail],
             subject: "Audio Conversion Successful!",
-            text: `Your File ${message.filename} has been successfully converted ${message.username}! You can download it using the File ID ${message.fileid} through our Gateway or by Login into your account`,
+            text: `Your File ${message.filename} has been successfully converted ${message.username}! You can download it using this File URL ${message.fileurl} or by Login into your account`,
             // html: "<h1>Testing some Mailgun awesomeness!</h1>"
         })
         return response.status

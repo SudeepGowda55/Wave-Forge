@@ -12,47 +12,6 @@ import (
 	"Audio_Conversion-Microservice/gateway-service/types"
 )
 
-func Login(contextProvider *gin.Context) {
-	var userLoginData types.UserLoginData
-
-	if err := contextProvider.BindJSON(&userLoginData); err != nil {
-		contextProvider.JSON(400, err.Error())
-		return
-	}
-
-	jsonData, err := json.Marshal(userLoginData)
-
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
-		return
-	}
-
-	buf := new(bytes.Buffer)
-
-	_, _ = buf.Write(jsonData)
-
-	resp, err := http.Post("http://localhost:8001/login", "application/json", buf)
-
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
-		return
-	}
-
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
-		return
-	}
-
-	token := string(body)
-	jwtToken := strings.ReplaceAll(token, "\"", "")
-
-	contextProvider.JSON(200, jwtToken)
-}
-
 func Signup(contextProvider *gin.Context) {
 	var signupData types.UserSignupData
 
@@ -88,10 +47,10 @@ func Signup(contextProvider *gin.Context) {
 		return
 	}
 
-	response := string(body)
-	resMessage := strings.ReplaceAll(response, "\"", "")
+	token := string(body)
+	jwtToken := strings.ReplaceAll(token, "\"", "")
 
-	contextProvider.JSON(200, resMessage)
+	contextProvider.JSON(200, jwtToken)
 }
 
 func ValidateJWT(contextProvider *gin.Context) {

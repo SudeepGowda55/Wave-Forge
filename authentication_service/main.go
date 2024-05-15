@@ -24,7 +24,6 @@ func main() {
 	router := gin.Default()
 
 	router.POST("/signup", auth.Signup)
-	router.POST("/login", auth.Login)
 	router.POST("/validate", auth.ValidateJWT)
 	router.POST("/fileentry", utils.FileEntry)
 	router.POST("/getfiles", utils.GetFiles)

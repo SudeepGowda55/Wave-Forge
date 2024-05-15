@@ -7,14 +7,6 @@ type GridfsFile struct {
 	Id       primitive.ObjectID `bson:"_id"`
 }
 
-// {"_id": {"$oid":"663d8d7615b1ef95a578a2a5"},
-//  "length":{"$numberLong":"4"},
-//  "chunkSize":{"$numberInt":"261120"},
-//  "uploadDate":{"$date":{"$numberLong":"1715309942985"}},
-//  "filename":"monisha.txt",
-//  "metadata":{"userid":"sudeep@gmail.com"}
-// }
-
 type UserLoginData struct {
 	UserMail string `json:"usermail"`
 	Password string `json:"password"`
@@ -26,4 +18,17 @@ type UserSignupData struct {
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
 	UserName  string `json:"username"`
+}
+
+type FileUploadedMessage struct {
+	UserMail string `json:"usermail"`
+	FileName string `json:"filename"`
+	FileID   string `json:"fileid"`
+	UserName string `json:"username"`
+}
+
+type FileEntry struct {
+	UserMail string `json:"usermail"`
+	FileId   string `json:"fileid"`
+	FileName string `json:"filename"`
 }

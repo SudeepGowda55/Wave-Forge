@@ -9,6 +9,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Postrgesql database connection
+
 var Db *sql.DB
 
 func ConnectToDatabase() {
@@ -27,6 +29,6 @@ func ConnectToDatabase() {
 		panic(errSql)
 	} else {
 		Db = db
-		fmt.Println("Successfully connected to database!")
+		fmt.Println("Successfully connected to Postrgesql database!")
 	}
 }

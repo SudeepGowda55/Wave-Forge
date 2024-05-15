@@ -7,12 +7,6 @@ type UserSignup struct {
 	LastName  string `json:"lastname"`
 	UserName  string `json:"username"`
 	UserMail  string `json:"usermail"`
-	Password  string `json:"password"`
-}
-
-type UserLogin struct {
-	UserMail string `json:"usermail"`
-	Password string `json:"password"`
 }
 
 type JWTPayload struct {
@@ -31,4 +25,5 @@ type FileId struct {
 type File struct {
 	FileId   string `json:"fileid"`
 	FileName string `json:"filename"`
+	FileUrl  string `json:"fileurl"`
 }

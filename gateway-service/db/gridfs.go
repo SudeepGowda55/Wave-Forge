@@ -1,108 +1,111 @@
 package db
 
 import (
+	"Audio_Conversion-Microservice/gateway-service/rabbitmq"
+	"Audio_Conversion-Microservice/gateway-service/types"
 	"bytes"
-	"fmt"
+	"encoding/json"
 	"io"
+	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var gridfsBucket *gridfs.Bucket
+var gridfsBucket *gridfs.Bucket // File to store user uploaded bucket
 
 func CreateBucket() {
 	bucket, err := gridfs.NewBucket(MongodbClient.Database(os.Getenv("MONGODB_DATABASE")), options.GridFSBucket().SetName("gridfsbucket"))
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalln(err.Error())
+		return
 	}
 
 	gridfsBucket = bucket
 }
+
+// curl -X POST -F 'usermail=sudeep@gmail.com' -F 'username=sudeep' -F 'sourcefile=@/home/sudeep/dog.mp4' http://localhost:8000/upload
 
 func UploadFile(contextProvider *gin.Context) {
 	file, fileMetadata, err := contextProvider.Request.FormFile("sourcefile")
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())
+		return
 	}
 
-	userID := options.GridFSUpload().SetMetadata(bson.D{{Key: "userid", Value: "sudeep@gmail.com"}})
+	userID := options.GridFSUpload().SetMetadata(bson.D{{Key: "userid", Value: contextProvider.PostForm("usermail")}})
 
 	objectID, err := gridfsBucket.UploadFromStream(fileMetadata.Filename, io.Reader(file), userID)
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())
+		return
+	}
+
+	var fileEntryData = types.FileEntry{
+		UserMail: contextProvider.PostForm("usermail"),
+		FileId:   objectID.String(),
+		FileName: fileMetadata.Filename,
+	}
+
+	fileEntryDataJSON, _ := json.Marshal(fileEntryData)
+
+	buf := new(bytes.Buffer)
+
+	_, _ = buf.Write(fileEntryDataJSON)
+
+	httpClient := &http.Client{}
+
+	req, err := http.NewRequest("POST", "http://localhost:8001/fileentry", buf)
+
+	if err != nil {
+		contextProvider.JSON(500, err.Error())
+		return
+	}
+
+	res, err := httpClient.Do(req)
+
+	if err != nil {
+		contextProvider.JSON(500, err.Error())
+		return
+	}
+
+	if res.StatusCode != 201 {
+		contextProvider.JSON(500, "Error in File Data Entry")
+		return
+	}
+
+	var fileUploadedMessage = types.FileUploadedMessage{
+		UserMail: contextProvider.PostForm("usermail"),
+		FileName: fileMetadata.Filename,
+		FileID:   objectID.String(),
+		UserName: contextProvider.PostForm("firstname"),
+	}
+
+	jsonData, _ := json.Marshal(fileUploadedMessage)
+
+	errr := rabbitmq.RabbitMQChannel.Publish(
+		"",
+		"file_uploaded",
+		false,
+		false,
+		amqp091.Publishing{
+			ContentType: "text/plain",
+			Body:        jsonData,
+		},
+	)
+
+	if errr != nil {
+		contextProvider.JSON(500, errr.Error())
+		return
 	}
 
 	contextProvider.JSON(201, "File Successfully Uploaded with the ObjectID: "+objectID.String())
-}
-
-// No need of this
-
-// func FindFileName(contextProvider *gin.Context) string {
-// 	filter := bson.D{{Key: "metadata", Value: bson.D{{Key: "userid", Value: "sudeep@gmail.com"}}}}
-
-// 	cursor, err := gridfsBucket.Find(filter)
-
-// 	if err != nil {
-// 		contextProvider.JSON(500, "FILE NOT FOUND")
-// 		// return
-// 	}
-
-// 	var files []types.GridfsFile
-
-// 	if err = cursor.All(context.TODO(), &files); err != nil {
-// 		contextProvider.JSON(500, "INTERNAL SERVER ERROR, FILE NOT FOUND")
-// 	}
-
-// 	for _, file := range files {
-// 		return file.FileName
-// 	}
-
-// 	return "filename"
-// }
-
-func DownloadFile(contextProvider *gin.Context) {
-	id := contextProvider.Param("id")
-	objId, err := primitive.ObjectIDFromHex(id)
-
-	if err != nil {
-		contextProvider.JSON(500, "INVALID OBJECT ID")
-	}
-
-	buffer := new(bytes.Buffer)
-
-	if _, err := gridfsBucket.DownloadToStream(objId, buffer); err != nil {
-		contextProvider.JSON(500, "FILE NOT FOUND")
-	}
-
-	// filename := FindFileName(contextProvider)
-
-	// contextProvider.JSON(200, filename)
-	// contextProvider.Data(200, "file Data", buffer.Bytes())
-}
-
-func DeleteFile(contextProvider *gin.Context) {
-	id := contextProvider.Param("id")
-	objId, err := primitive.ObjectIDFromHex(id)
-
-	if err != nil {
-		contextProvider.JSON(500, "INVALID OBJECT ID")
-	}
-
-	if err := gridfsBucket.Delete(objId); err != nil {
-		contextProvider.JSON(500, "FILE NOT DELETED")
-	}
-
-	contextProvider.JSON(200, "FILE DELETED SUCCESSFULLY")
-}
-
-func ConversionCompleted(contextProvider *gin.Context) {
-	contextProvider.JSON(200, "CONVERSION COMPLETED")
 }

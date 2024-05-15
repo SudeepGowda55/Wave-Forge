@@ -15,7 +15,26 @@ func FileEntry(contextProvider *gin.Context) {
 		return
 	}
 
-	_, err := database.Db.Exec("INSERT INTO userfiles (usermail, fileid, filename) VALUES ($1, $2, $3)", fileId.UserMail, fileId.FileId, fileId.FileName)
+	_, err := database.Db.Exec("INSERT INTO userfiles (usermail, fileid, filename, fileurl) VALUES ($1, $2, $3, $4)", fileId.UserMail, fileId.FileId, fileId.FileName, "n/a")
+
+	if err != nil {
+		contextProvider.IndentedJSON(500, err.Error())
+		return
+	} else {
+		contextProvider.IndentedJSON(201, "File Info Entered Successfully")
+		return
+	}
+}
+
+func UpdateFileUrl(contextProvider *gin.Context) {
+	fileUrl := contextProvider.PostForm("fileurl")
+
+	if fileUrl == "" {
+		contextProvider.JSON(400, "File URL not specified")
+		return
+	}
+
+	_, err := database.Db.Exec("UPDATE userfiles SET fileurl = $1 WHERE usermail = $2 AND fileid = $3", fileUrl, contextProvider.PostForm("usermail"), contextProvider.PostForm("fileid"))
 
 	if err != nil {
 		contextProvider.IndentedJSON(500, err.Error())
@@ -29,7 +48,12 @@ func FileEntry(contextProvider *gin.Context) {
 func GetFiles(contextProvider *gin.Context) {
 	userMail := contextProvider.GetHeader("usermail")
 
-	rows, err := database.Db.Query("SELECT fileid, filename FROM userfiles WHERE usermail = $1", userMail)
+	if userMail == "" {
+		contextProvider.JSON(403, "User Mail not specified")
+		return
+	}
+
+	rows, err := database.Db.Query("SELECT fileid, filename, fileurl FROM userfiles WHERE usermail = $1", userMail)
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())
@@ -42,7 +66,8 @@ func GetFiles(contextProvider *gin.Context) {
 
 	for rows.Next() {
 		var file types.File
-		err := rows.Scan(&file.FileId, &file.FileName)
+
+		err := rows.Scan(&file.FileId, &file.FileName, &file.FileUrl)
 
 		if err != nil {
 			contextProvider.JSON(500, err.Error())
