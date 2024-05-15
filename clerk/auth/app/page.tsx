@@ -1,18 +1,18 @@
-"use client";
-import { useUser } from "@clerk/nextjs";
-export default function Home() {
-   const { isLoaded, isSignedIn, user, } = useUser();
+import { auth } from '@clerk/nextjs/server';
 
-  if (!isLoaded || !isSignedIn) {
-    return null;
-  }
- 
-    return <div>
-      Hello, {user.firstName} welcome to Clerk
-      
-      </div>;
-  
+import { NextResponse } from 'next/server';
+
+export default function Page() {
+  const { sessionClaims } = auth();
+
+  const firstName = sessionClaims?.fullName;
+console.log(firstName);
+  const primaryEmail = sessionClaims?.email;
+console.log(primaryEmail)
+  return (
+    <div>
+      {firstName}
+      This is email: {primaryEmail}
+    </div>
+  )
 }
-
-
-
