@@ -19,3 +19,5 @@ Docker File: docker run sudeepgowda55/notification-service:latest
 You need to run Gateway service First and then Authentication Service Followed by Converter Service and then Notification Service
 
 Dont Change the order or else IP Addressing will change and services won't work
+
+After all the Docker containers are running make http requests to http://172.17.0.2:8000/
