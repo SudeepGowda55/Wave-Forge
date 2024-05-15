@@ -17,7 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var gridfsBucket *gridfs.Bucket // File to store user uploaded bucket
+var gridfsBucket *gridfs.Bucket
 
 func CreateBucket() {
 	bucket, err := gridfs.NewBucket(MongodbClient.Database(os.Getenv("MONGODB_DATABASE")), options.GridFSBucket().SetName("gridfsbucket"))
@@ -30,7 +30,7 @@ func CreateBucket() {
 	gridfsBucket = bucket
 }
 
-// curl -X POST -F 'usermail=sudeep@gmail.com' -F 'username=sudeep' -F 'sourcefile=@/home/sudeep/dog.mp4' http://localhost:8000/upload
+// curl -X POST -F 'usermail=ssudeepgowda55@gmail.com' -F 'firstname=Sudeep' -F 'sourcefile=@/home/sudeep/dog.mp4' http://localhost:8000/upload
 
 func UploadFile(contextProvider *gin.Context) {
 	file, fileMetadata, err := contextProvider.Request.FormFile("sourcefile")
@@ -63,7 +63,7 @@ func UploadFile(contextProvider *gin.Context) {
 
 	httpClient := &http.Client{}
 
-	req, err := http.NewRequest("POST", "http://localhost:8001/fileentry", buf)
+	req, err := http.NewRequest("POST", "http://172.17.0.3:8001/fileentry", buf)
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())

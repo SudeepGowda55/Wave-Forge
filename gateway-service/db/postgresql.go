@@ -17,7 +17,7 @@ func GetFiles(contextProvider *gin.Context) {
 
 	httpClient := &http.Client{}
 
-	req, _ := http.NewRequest("POST", "http://localhost:8001/getfiles", nil)
+	req, _ := http.NewRequest("POST", "http://172.17.0.3:8001/getfiles", nil)
 
 	req.Header.Set("usermail", usermail)
 

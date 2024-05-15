@@ -31,7 +31,7 @@ func Signup(contextProvider *gin.Context) {
 
 	_, _ = buffer.Write(jsonData)
 
-	resp, err := http.Post("http://localhost:8001/signup", "application/json", buffer)
+	resp, err := http.Post("http://172.17.0.3:8001/signup", "application/json", buffer)
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())
@@ -64,7 +64,7 @@ func ValidateJWT(contextProvider *gin.Context) {
 
 	httpClient := &http.Client{}
 
-	req, _ := http.NewRequest("POST", "http://localhost:8001/validate", nil)
+	req, _ := http.NewRequest("POST", "http://172.17.0.3:8001/validate", nil)
 	req.Header.Set("JWTToken", jwtToken)
 
 	resp, err := httpClient.Do(req)
