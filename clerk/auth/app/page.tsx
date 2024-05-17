@@ -11,7 +11,7 @@ console.log(primaryEmail)
   return (
     <div>
       {firstName}
-      This is email: {primaryEmail}
+      This is email for the signed in user: {primaryEmail}
     </div>
   )
 }
