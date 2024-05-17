@@ -1,13 +1,12 @@
 import { auth } from '@clerk/nextjs/server';
 
-import { NextResponse } from 'next/server';
 
 export default function Page() {
   const { sessionClaims } = auth();
 
-  const firstName = sessionClaims?.fullName;
+  const firstName: string | undefined = sessionClaims?.fullName as string;
 console.log(firstName);
-  const primaryEmail = sessionClaims?.email;
+  const primaryEmail: string | undefined = sessionClaims?.email as string;
 console.log(primaryEmail)
   return (
     <div>
