@@ -15,7 +15,7 @@ func FileEntry(contextProvider *gin.Context) {
 		return
 	}
 
-	_, err := database.Db.Exec("INSERT INTO userfiles (usermail, fileid, filename, fileurl) VALUES ($1, $2, $3, $4)", fileId.UserMail, fileId.FileId, fileId.FileName, "n/a")
+	_, err := database.Db.Exec("INSERT INTO userfiles (usermail, fileid, filename, fileurl, destaudioformat, samplingrate) VALUES ($1, $2, $3, $4, $5, $6)", fileId.UserMail, fileId.FileId, fileId.FileName, "n/a", fileId.DestAudioFormat, fileId.SamplingRate)
 
 	if err != nil {
 		contextProvider.IndentedJSON(500, err.Error())
@@ -53,7 +53,7 @@ func GetFiles(contextProvider *gin.Context) {
 		return
 	}
 
-	rows, err := database.Db.Query("SELECT fileid, filename, fileurl FROM userfiles WHERE usermail = $1", userMail)
+	rows, err := database.Db.Query("SELECT fileid, filename, fileurl, destaudioformat, samplingrate FROM userfiles WHERE usermail = $1", userMail)
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())
@@ -67,7 +67,7 @@ func GetFiles(contextProvider *gin.Context) {
 	for rows.Next() {
 		var file types.File
 
-		err := rows.Scan(&file.FileId, &file.FileName, &file.FileUrl)
+		err := rows.Scan(&file.FileId, &file.FileName, &file.FileUrl, &file.DestAudioFormat, &file.SamplingRate)
 
 		if err != nil {
 			contextProvider.JSON(500, err.Error())

@@ -50,9 +50,11 @@ func UploadFile(contextProvider *gin.Context) {
 	}
 
 	var fileEntryData = types.FileEntry{
-		UserMail: contextProvider.PostForm("usermail"),
-		FileId:   objectID.String(),
-		FileName: fileMetadata.Filename,
+		UserMail:        contextProvider.PostForm("usermail"),
+		FileId:          objectID.String(),
+		FileName:        fileMetadata.Filename,
+		DestAudioFormat: contextProvider.PostForm("destaudioformat"),
+		SamplingRate:    contextProvider.PostForm("samplingrate"),
 	}
 
 	fileEntryDataJSON, _ := json.Marshal(fileEntryData)
@@ -83,10 +85,12 @@ func UploadFile(contextProvider *gin.Context) {
 	}
 
 	var fileUploadedMessage = types.FileUploadedMessage{
-		UserMail: contextProvider.PostForm("usermail"),
-		FileName: fileMetadata.Filename,
-		FileID:   objectID.String(),
-		UserName: contextProvider.PostForm("firstname"),
+		UserMail:        contextProvider.PostForm("usermail"),
+		FileName:        fileMetadata.Filename,
+		FileID:          objectID.String(),
+		UserName:        contextProvider.PostForm("firstname"),
+		DestAudioFormat: contextProvider.PostForm("destaudioformat"),
+		SamplingRate:    contextProvider.PostForm("samplingrate"),
 	}
 
 	jsonData, _ := json.Marshal(fileUploadedMessage)

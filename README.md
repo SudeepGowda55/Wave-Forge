@@ -2,7 +2,7 @@ There are Four Micro Services
 
 1. Gateway Service
 
-Docker File: docker run sudeepgowda55/gateway-service:latest
+Docker File: docker run -p 8000:8000 sudeepgowda55/gateway-service:latest
 
 2. Authentication Service
 
@@ -20,4 +20,4 @@ You need to run Gateway service First and then Authentication Service Followed b
 
 Dont Change the order or else IP Addressing will change and services won't work
 
-After all the Docker containers are running make http requests to http://172.17.0.2:8000/
+After all the Docker containers are running make http requests to http://localhost:8000/

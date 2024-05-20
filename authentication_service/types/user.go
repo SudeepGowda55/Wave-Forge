@@ -16,14 +16,18 @@ type JWTPayload struct {
 
 // To upload File Data to userfiles table
 type FileId struct {
-	UserMail string `json:"usermail"`
-	FileId   string `json:"fileid"`
-	FileName string `json:"filename"`
+	UserMail        string `json:"usermail"`
+	FileId          string `json:"fileid"`
+	FileName        string `json:"filename"`
+	DestAudioFormat string `json:"destaudioformat"`
+	SamplingRate    string `json:"samplingrate"`
 }
 
 // To retrive File Data from userfiles table
 type File struct {
-	FileId   string `json:"fileid"`
-	FileName string `json:"filename"`
-	FileUrl  string `json:"fileurl"`
+	FileId          string `json:"fileid"`
+	FileName        string `json:"filename"`
+	FileUrl         string `json:"fileurl"`
+	DestAudioFormat string `json:"destaudioformat"`
+	SamplingRate    string `json:"samplingrate"`
 }
