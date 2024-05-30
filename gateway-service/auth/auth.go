@@ -3,8 +3,10 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +33,9 @@ func Signup(contextProvider *gin.Context) {
 
 	_, _ = buffer.Write(jsonData)
 
-	resp, err := http.Post("http://172.17.0.3:8001/signup", "application/json", buffer)
+	authenticationServiceUrl := fmt.Sprint(os.Getenv("AUTHENTICATION_SERVICE_URL"), "/signup")
+
+	resp, err := http.Post(authenticationServiceUrl, "application/json", buffer)
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())
@@ -64,7 +68,9 @@ func ValidateJWT(contextProvider *gin.Context) {
 
 	httpClient := &http.Client{}
 
-	req, _ := http.NewRequest("POST", "http://172.17.0.3:8001/validate", nil)
+	authenticationServiceUrl := fmt.Sprint(os.Getenv("AUTHENTICATION_SERVICE_URL"), "/validate")
+
+	req, _ := http.NewRequest("POST", authenticationServiceUrl, nil)
 	req.Header.Set("JWTToken", jwtToken)
 
 	resp, err := httpClient.Do(req)

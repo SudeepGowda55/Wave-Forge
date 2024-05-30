@@ -1,8 +1,10 @@
 package db
 
 import (
+	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +19,9 @@ func GetFiles(contextProvider *gin.Context) {
 
 	httpClient := &http.Client{}
 
-	req, _ := http.NewRequest("POST", "http://172.17.0.3:8001/getfiles", nil)
+	authenticationServiceUrl := fmt.Sprint(os.Getenv("AUTHENTICATION_SERVICE_URL"), "/getfiles")
+
+	req, _ := http.NewRequest("POST", authenticationServiceUrl, nil)
 
 	req.Header.Set("usermail", usermail)
 

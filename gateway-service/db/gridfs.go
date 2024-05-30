@@ -5,6 +5,7 @@ import (
 	"Audio_Conversion-Microservice/gateway-service/types"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -65,7 +66,9 @@ func UploadFile(contextProvider *gin.Context) {
 
 	httpClient := &http.Client{}
 
-	req, err := http.NewRequest("POST", "http://172.17.0.3:8001/fileentry", buf)
+	authenticationServiceUrl := fmt.Sprint(os.Getenv("AUTHENTICATION_SERVICE_URL"), "/fileentry")
+
+	req, err := http.NewRequest("POST", authenticationServiceUrl, buf)
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())
