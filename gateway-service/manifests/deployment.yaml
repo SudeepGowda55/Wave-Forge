@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service-deployment
+spec:
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      containers:
+        - name: gateway-service
+          image: sudeepgowda55/gateway-service:latest
+          resources:
+            limits:
+              memory: "150Mi"
+              cpu: "150m"
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MONGODB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-service-secret
+                  key: MONGODB_USERNAME
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MONGODB_PASSWORD
+                  name: gateway-service-secret
+            - name: MONGODB_APPNAME
+              valueFrom:
+                secretKeyRef:
+                  key: MONGODB_APPNAME
+                  name: gateway-service-secret
+            - name: MONGODB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: MONGODB_DATABASE
+                  name: gateway-service-secret
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  key: RABBITMQ_URL
+                  name: gateway-service-secret
+            - name: AUTHENTICATION_SERVICE_URL
+              valueFrom:
+                secretKeyRef:
+                  key: AUTHENTICATION_SERVICE_URL
+                  name: gateway-service-secret

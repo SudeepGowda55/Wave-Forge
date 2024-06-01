@@ -1,5 +1,4 @@
 .vscode
-manifests
 postgresql-neondb.session.sql
 authentication_service/.env
 converter-service/venv
@@ -9,3 +8,4 @@ converter-service/.env
 gateway-service/.env
 notification_service/node_modules
 notification_service/.env
+secrets-yaml

@@ -1,9 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-service
-  labels:
-    app: auth-service
+  name: auth-service-deployment
 spec:
   replicas: 1
   selector:
@@ -16,15 +14,41 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: sudeepgowda55/auth-service:1.0
+          image: sudeepgowda55/auth-service:latest
           resources:
             limits:
-              memory: "128Mi"
-              cpu: "500m"
+              memory: "150Mi"
+              cpu: "150m"
           ports:
-            - containerPort: 8000
-          envFrom:
-            - configMapRef:
-                name: auth-service-configmap
-            - secretRef:
-                name: auth-service-secret
+            - containerPort: 8001
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: DB_PASSWORD
+                  name: auth-service-secret
+            - name: DB_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: DB_HOSTNAME
+                  name: auth-service-secret
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  key: DB_PORT
+                  name: auth-service-secret
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: DB_DATABASE
+                  name: auth-service-secret
+            - name: JWT_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: JWT_PRIVATE_KEY
+                  name: auth-service-secret

@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: audio-app-ingress
+  labels:
+    name: audio-app-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: kube.nostrclient.social
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: gateway-service-service
+            port: 
+              number: 8000
