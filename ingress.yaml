@@ -6,14 +6,18 @@ metadata:
     name: audio-app-ingress
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - kube.nostrclient.social
+      secretName: tls-certificate
   rules:
-  - host: kube.nostrclient.social
-    http:
-      paths:
-      - pathType: Prefix
-        path: "/"
-        backend:
-          service:
-            name: gateway-service-service
-            port: 
-              number: 8000
+    - host: kube.nostrclient.social
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: gateway-service-service
+                port:
+                  number: 8000

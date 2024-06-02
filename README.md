@@ -1,3 +1,9 @@
+Currently its running Digital ocean kubernetes Cluster with ingress controller and Load Balancer 
+
+make request to controler https://kube.nostrclient.social/
+
+example post request to https://kube.nostrclient.social/validatejwt
+
 There are Four Micro Services
 
 1. Gateway Service
