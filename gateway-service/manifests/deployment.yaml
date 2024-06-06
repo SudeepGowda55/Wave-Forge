@@ -16,8 +16,8 @@ spec:
           image: sudeepgowda55/gateway-service:latest
           resources:
             limits:
-              memory: "150Mi"
-              cpu: "150m"
+              memory: "250Mi"
+              cpu: "350m"
           ports:
             - containerPort: 8000
           env:

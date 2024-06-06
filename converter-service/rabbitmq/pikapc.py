@@ -17,6 +17,6 @@ def consume_from_file_uploaded_queue():
 def publish_to_notification_queue(ch, method, properties, body):
     print(" [Converted Service] Received " + str(body))
     channel.queue_declare(queue="file_converted_notification")
-    channel.basic_publish(exchange="", routing_key="file_converted_notification", body=str(body))
+    # channel.basic_publish(exchange="", routing_key="file_converted_notification", body=str(body))
     print(" [Notification Service] Sent " + str(body))
     time.sleep(2)

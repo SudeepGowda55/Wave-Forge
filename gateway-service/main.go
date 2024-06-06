@@ -28,6 +28,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	utils.Loadenv()
+
 	db.Connection()
 	db.CreateBucket()
 
@@ -39,6 +40,7 @@ func main() {
 
 	router.POST("/signup", auth.Signup)
 	router.POST("/validatejwt", auth.ValidateJWT)
+	router.POST("/updatefileurl", db.UpdateFileUrl)
 	router.POST("/upload", db.UploadFile)
 	router.POST("/getfiles", db.GetFiles)
 

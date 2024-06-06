@@ -27,3 +27,7 @@ You need to run Gateway service First and then Authentication Service Followed b
 Dont Change the order or else IP Addressing will change and services won't work
 
 After all the Docker containers are running make http requests to http://localhost:8000/
+
+For debugging 
+
+kubectl get events --sort-by=.metadata.creationTimestamp

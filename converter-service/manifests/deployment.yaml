@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification-service-deployment
+  name: converter-service-deployment
 spec:
   selector:
     matchLabels:
-      app: notification-service
+      app: converter-service
   template:
     metadata:
       labels:
-        app: notification-service
+        app: converter-service
     spec:
       containers:
-      - name: notification-service
-        image: sudeepgowda55/notification-service:latest
+      - name: converter-service
+        image: sudeepgowda55/converter-service:latest
         resources:
           limits:
             memory: "128Mi"

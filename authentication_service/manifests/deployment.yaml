@@ -17,7 +17,7 @@ spec:
           image: sudeepgowda55/auth-service:latest
           resources:
             limits:
-              memory: "150Mi"
+              memory: "50Mi"
               cpu: "150m"
           ports:
             - containerPort: 8001
