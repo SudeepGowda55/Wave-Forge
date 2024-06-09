@@ -3,14 +3,21 @@
 "use client"
 
 import axios from 'axios';
-import { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 const DashboardPage = () => {
 const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [objectId, setObjectId] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
-
+      const [usermail, setUsermail] = useState<string | null>(null);
+  const router = useRouter()
+useEffect(() => {
+    const storedUsermail = localStorage.getItem('usermail');
+    if (storedUsermail) {
+      setUsermail(storedUsermail);
+    }
+  }, []);
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
     setFile(selectedFile);
@@ -23,10 +30,14 @@ const [file, setFile] = useState<File | null>(null);
       console.error('No file selected');
       return;
     }
+      if (!usermail) {
+      console.error('No user email found');
+      return;
+    }
     setIsLoading(true);
     const formData = new FormData();
     formData.append('sourcefile', file);
-    formData.append('usermail', 'user@example.com'); // Replace with actual user email
+    formData.append('usermail', usermail); // Use email from local storage
     formData.append('destaudioformat', 'mp3'); // Replace with actual destination audio format
     formData.append('samplingrate', '44100'); // Replace with actual sampling rate
 
@@ -55,7 +66,16 @@ const [file, setFile] = useState<File | null>(null);
       setIsLoading(false);
     }
   };
+useEffect(() => {
+    if (objectId) {
+      // Redirect to /getfiles after a short delay
+      const timer = setTimeout(() => {
+        router.push('/getfiles');
+      }, 1000);
 
+      return () => clearTimeout(timer); // Cleanup the timer
+    }
+  }, [objectId, router]);
   return (
     <>
      <div className="flex justify-center items-center min-h-screen bg-blue-100">
@@ -83,11 +103,11 @@ const [file, setFile] = useState<File | null>(null);
           </div>
         )}
         <button
-          onClick={handleFileUpload}
+          onClick={objectId ? () => router.push('/getfiles') : handleFileUpload}
           disabled={isLoading}
           className="w-full bg-purple-600 text-white py-2 rounded-lg mt-4 hover:bg-purple-700 transition-colors"
         >
-          {isLoading ? 'Uploading...' : 'Done'}
+{isLoading ? 'Uploading...' : objectId ? 'Done' : 'Upload'}
         </button>
         {objectId && <p className="mt-4 text-green-600">File Successfully Uploaded with the ObjectID: {objectId}</p>}
       </div>
