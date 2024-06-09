@@ -70,16 +70,15 @@ const DashboardPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (objectId) {
-      // Redirect to /getfiles after a short delay
-      const timer = setTimeout(() => {
-        router.push('/getfiles');
-      }, 1000);
+  const handleReupload = () => {
+    setFile(null);
+    setObjectId(null);
+    setProgress(0);
+  };
 
-      return () => clearTimeout(timer); // Cleanup the timer
-    }
-  }, [objectId, router]);
+  const handleDone = () => {
+    router.push('/dashboard');
+  };
 
   return (
     <>
@@ -125,19 +124,35 @@ const DashboardPage = () => {
               onChange={(e) => setSamplingRate(e.target.value)}
               className="block w-full text-sm text-gray-900 border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
             >
-              <option value="44100">22400</option>
+              <option value="22400">22400</option>
               <option value="48000">48000</option>
-              <option value="NA">n/a</option>
+              <option value="n/a">n/a</option>
             </select>
           </div>
           <button
-            onClick={objectId ? () => router.push('/getfiles') : handleFileUpload}
+            onClick={handleFileUpload}
             disabled={isLoading}
             className="w-full bg-purple-600 text-white py-2 rounded-lg mt-4 hover:bg-purple-700 transition-colors"
           >
-            {isLoading ? 'Uploading...' : objectId ? 'Done' : 'Upload'}
+            {isLoading ? 'Uploading...' : 'Upload'}
           </button>
-          {objectId && <p className="mt-4 text-green-600">File Successfully Uploaded with the ObjectID: {objectId}</p>}
+          {objectId && (
+            <div className="mt-4">
+              <p className="text-green-600 mb-4">File Successfully Uploaded with the ObjectID: {objectId}</p>
+              <button
+                onClick={handleReupload}
+                className="w-full bg-yellow-500 text-white py-2 rounded-lg mt-2 hover:bg-yellow-600 transition-colors"
+              >
+                Reupload
+              </button>
+              <button
+                onClick={handleDone}
+                className="w-full bg-green-600 text-white py-2 rounded-lg mt-2 hover:bg-green-700 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
