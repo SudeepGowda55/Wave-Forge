@@ -54,10 +54,8 @@ const SignupPage: React.FC = () => {
   return (
    <div className="flex min-h-screen">
       <div className="w-1/2 flex flex-col justify-center items-center p-8">
-        <h1 className="text-4xl font-bold mb-4">Create an account</h1>
-      {/*   <p className="mb-4">
-          Already have an account? <a href="#" className="text-blue-500">Sign in</a>
-        </p> */}
+        <h1 className="text-4xl font-bold mb-10">Create an account</h1>
+      
         <div className="w-full max-w-sm">
           <div className="mb-4">
             <label htmlFor="firstName" className="block text-gray-700">FirstName</label>
@@ -105,23 +103,24 @@ const SignupPage: React.FC = () => {
           </div>
           <button
             onClick={handleSignup}
-            className="w-full bg-blue-500 text-white p-2 rounded mt-4"
+            className="w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 p-2  mt-4"
           >
             Sign up
           </button>
         </div>
         {jwtToken && <p className="mt-4">JWT Token: {jwtToken}</p>}
       </div>
-      <div className="w-1/2 bg-gray-100 flex justify-center items-center p-8">
-        <div className="text-center">
-          <p className="text-xl italic mb-4">
-            The customer support I received was exceptional. The support team went above and beyond to address my concerns
-          </p>
-          <p className="text-gray-700">
-            Julies Winfield || Vishruth VS<br />
-            CEO | Acme corp
-          </p>
-        </div>
+     <div className="w-1/2 bg-gray-100 flex justify-center items-center ">
+        <video
+        key="background-video"
+          className="w-full h-full object-cover"
+          //controls
+          autoPlay
+          loop
+          muted
+           playsInline
+          src="https://cdn.dribbble.com/uploads/48226/original/b8bd4e4273cceae2889d9d259b04f732.mp4?1689028949"
+        />
       </div>
     </div>
   );
