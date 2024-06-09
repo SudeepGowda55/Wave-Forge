@@ -83,14 +83,15 @@ const FilesPage: React.FC = () => {
         </button>
       </div>
       {files && (
-        <div className="mt-6 w-full max-w-4xl">
-          <table className="min-w-full bg-white border border-gray-200">
+        <div className="mt-6 w-full max-w-4xl ">
+          <table className="min-w-full bg-white border border-gray-200 ">
             <thead>
               <tr>
                 <th className="py-2 px-4 border-b">File ID</th>
                 <th className="py-2 px-4 border-b">Filename</th>
                 <th className="py-2 px-4 border-b">Audio Format</th>
                 <th className="py-2 px-4 border-b">Sampling Rate</th>
+                <th className="py-2 px-4 border-b">File URl</th>
               </tr>
             </thead>
             <tbody>
@@ -100,6 +101,7 @@ const FilesPage: React.FC = () => {
                   <td className="py-2 px-4 border-b">{file.filename}</td>
                   <td className="py-2 px-4 border-b">{file.destaudioformat}</td>
                   <td className="py-2 px-4 border-b">{file.samplingrate}</td>
+                  <td className="py-2 px-4 border-b">{file.fileurl}</td>
                 </tr>
               ))}
             </tbody>
