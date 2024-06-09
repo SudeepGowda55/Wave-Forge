@@ -112,7 +112,7 @@ const SignupPage: React.FC = () => {
       <div className="w-1/2 bg-gray-100 flex justify-center items-center p-8">
         <div className="text-center">
           <p className="text-xl italic mb-4">
-            "The customer support I received was exceptional. The support team went above and beyond to address my concerns"
+            The customer support I received was exceptional. The support team went above and beyond to address my concerns
           </p>
           <p className="text-gray-700">
             Julies Winfield || Vishruth VS<br />
