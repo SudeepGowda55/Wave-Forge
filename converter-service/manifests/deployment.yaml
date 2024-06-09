@@ -16,5 +16,5 @@ spec:
         image: sudeepgowda55/converter-service:latest
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "150m"
+            memory: "200Mi"
+            cpu: "350m"
