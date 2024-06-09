@@ -50,7 +50,7 @@ def process_and_get_url(data):
         sampling_rate = data.get(sampling_rate)
         if sampling_rate != "n/a":
             converted_file_url = conversions.change_audio_sampling_rate_wav(
-                sampling_rate, file_id
+                sampling_rate, file_name, file_id
             )
 
     elif conversion_type.lower() == "mp4_to_mp3":
@@ -60,7 +60,7 @@ def process_and_get_url(data):
         sampling_rate = data.get(sampling_rate)
         if sampling_rate != "n/a":
             converted_file_url = conversions.change_audio_sampling_rate_mp3(
-                sampling_rate, file_id
+                sampling_rate, file_name, file_id
             )
 
     elif conversion_type.lower() == "mp3_to_wav":
@@ -68,7 +68,7 @@ def process_and_get_url(data):
         sampling_rate = data.get(sampling_rate)
         if sampling_rate != "n/a":
             converted_file_url = conversions.change_audio_sampling_rate_wav(
-                sampling_rate, file_id
+                sampling_rate, file_name, file_id
             )
 
     elif conversion_type.lower() == "wav_to_mp3":
@@ -76,7 +76,7 @@ def process_and_get_url(data):
         sampling_rate = data.get(sampling_rate)
         if sampling_rate != "n/a":
             converted_file_url = conversions.change_audio_sampling_rate_mp3(
-                sampling_rate, file_id
+                sampling_rate, file_name, file_id
             )
 
     elif conversion_type.lower() == "mp3_to_mp3":
@@ -111,8 +111,8 @@ def process_and_get_url(data):
 
     elif conversion_type.lower() == "change_sampling_rate":
         if sampling_rate != "n/a":
-            converted_file_url = conversions.change_sampling_rate(
-                sampling_rate, file_id, file_name
+            converted_file_url = conversions.change_audio_sampling_rate(
+                sampling_rate, file_name, file_id
             )
 
     if converted_file_url:
@@ -143,6 +143,8 @@ def consume_from_file_uploaded_queue():
             print("Received " + str(data))
 
             conurl = process_and_get_url(data)
+
+            print("check point 2")
 
             if conurl:
                 notification_data = {
