@@ -78,7 +78,7 @@ def process_and_get_url(data):
             converted_file_url = conversions.change_audio_sampling_rate_mp3(
                 sampling_rate, file_id
             )
-    
+
     elif conversion_type.lower() == "mp3_to_mp3":
         form_data = {
             "fileurl": "conversion to same format not possible",
@@ -108,7 +108,6 @@ def process_and_get_url(data):
             print(f"/updatefileurl: {response_data}")
         else:
             print("Error sending POST request")
-        
 
     elif conversion_type.lower() == "change_sampling_rate":
         if sampling_rate != "n/a":

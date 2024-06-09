@@ -8,11 +8,12 @@ dotenv.load_dotenv()
 gridfs_bucket = mongodb.connect_to_mongodb()
 cloudinary = cloudinary.cloudinary_connection
 
+
 def convert_video_to_audio(conversion_type, file_name, file_id):
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
         try:
             data = gridfs_bucket.download_to_stream(ObjectId(file_id), temp_file)
-            temp_file.seek(0) 
+            temp_file.seek(0)
 
             if conversion_type.lower() == "mp4_to_wav":
                 audio_clip = pydub.AudioSegment.from_file_using_temporary_files(
