@@ -1,14 +1,14 @@
 "use client"
 
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
 const FilesPage = () => {
   const [files, setFiles] = useState<string | null>(null);
  // const [usermail, setUsermail] = useState<string>('user@example.com'); // Replace with actual user email
   const [isLoading, setIsLoading] = useState(false);
   const [usermail, setUsermail] = useState<string | undefined>(undefined);
-
+const router = useRouter();
 useEffect(() => {
     const storedUsermail = localStorage.getItem('usermail');
     if (storedUsermail) {
@@ -36,10 +36,13 @@ useEffect(() => {
       setIsLoading(false);
     }
   };
-
+const handleUploadRedirect = () => {
+    router.push('/upload');
+  };
   return (
      <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+         
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Welcome to <span className="text-blue-600">MyFolders</span></h1>
           <p className="text-gray-600 mt-2">Easily and safely helps collect and organize your documents</p>
@@ -59,6 +62,12 @@ useEffect(() => {
           className="w-full bg-purple-600 text-white py-2 rounded-lg mt-4 hover:bg-purple-700 transition-colors"
         >
           {isLoading ? 'Loading...' : 'Get Files'}
+        </button>
+        <button
+          onClick={handleUploadRedirect}
+          className="absolute top-4 right-4 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Upload
         </button>
         {files && (
           <pre className="mt-4 p-4 bg-gray-200 rounded-lg text-sm text-gray-800">{files}</pre>
