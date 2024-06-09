@@ -127,7 +127,7 @@ const DashboardPage = () => {
             >
               <option value="44100">22400</option>
               <option value="48000">48000</option>
-              <option value="NA">N/A</option>
+              <option value="NA">n/a</option>
             </select>
           </div>
           <button
