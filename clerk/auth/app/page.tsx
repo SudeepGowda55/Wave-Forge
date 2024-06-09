@@ -49,60 +49,77 @@ const SignupPage: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>Sign Up</h1>
-      <div>
-        <label htmlFor="firstName">First Name:</label>
-        <input
-          type="text"
-          id="firstName"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          required
-        />
+   <div className="flex min-h-screen">
+      <div className="w-1/2 flex flex-col justify-center items-center p-8">
+        <h1 className="text-4xl font-bold mb-4">Create an account</h1>
+        <p className="mb-4">
+          Already have an account? <a href="#" className="text-blue-500">Sign in</a>
+        </p>
+        <div className="w-full max-w-sm">
+          <div className="mb-4">
+            <label htmlFor="firstName" className="block text-gray-700">Name</label>
+            <input
+              type="text"
+              id="firstName"
+              className="w-full p-2 border border-gray-300 rounded mt-1"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="username" className="block text-gray-700">Username</label>
+            <input
+              type="text"
+              id="username"
+              className="w-full p-2 border border-gray-300 rounded mt-1"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-gray-700">Email</label>
+            <input
+              type="email"
+              id="email"
+              className="w-full p-2 border border-gray-300 rounded mt-1"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-gray-700">Password</label>
+            <input
+              type="password"
+              id="password"
+              className="w-full p-2 border border-gray-300 rounded mt-1"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button
+            onClick={handleSignup}
+            className="w-full bg-blue-500 text-white p-2 rounded mt-4"
+          >
+            Sign up
+          </button>
+        </div>
+        {jwtToken && <p className="mt-4">JWT Token: {jwtToken}</p>}
       </div>
-      <div>
-        <label htmlFor="lastName">Last Name:</label>
-        <input
-          type="text"
-          id="lastName"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          required
-        />
+      <div className="w-1/2 bg-gray-100 flex justify-center items-center p-8">
+        <div className="text-center">
+          <p className="text-xl italic mb-4">
+            "The customer support I received was exceptional. The support team went above and beyond to address my concerns"
+          </p>
+          <p className="text-gray-700">
+            Julies Winfield || Vishruth VS<br />
+            CEO | Acme corp
+          </p>
+        </div>
       </div>
-      <div>
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="email">Email:</label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      <button onClick={handleSignup}>Sign Up</button>
-      {jwtToken && <p>JWT Token: {jwtToken}</p>}
     </div>
   );
 };
