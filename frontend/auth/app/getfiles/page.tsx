@@ -1,13 +1,20 @@
 "use client"
 
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const FilesPage = () => {
   const [files, setFiles] = useState<string | null>(null);
-  const [usermail, setUsermail] = useState<string>('user@example.com'); // Replace with actual user email
+ // const [usermail, setUsermail] = useState<string>('user@example.com'); // Replace with actual user email
   const [isLoading, setIsLoading] = useState(false);
+  const [usermail, setUsermail] = useState<string | undefined>(undefined);
 
+useEffect(() => {
+    const storedUsermail = localStorage.getItem('usermail');
+    if (storedUsermail) {
+      setUsermail(storedUsermail);
+    }
+  }, []);
   const handleGetFiles = async () => {
     setIsLoading(true);
 
