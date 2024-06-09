@@ -48,9 +48,9 @@ const [file, setFile] = useState<File | null>(null);
 
   return (
     <>
-      <div>
-        <h1>Dashboard</h1>
-        <p>Welcome to your dashboard!</p>
+      <div className="bg-slate-400">
+        <h1 >Dashboard</h1>
+        <p className="font-extrabold">Welcome to your dashboard!</p>
         <input type="file" onChange={handleFileChange} />
        <button onClick={handleFileUpload} disabled={isLoading}>
         {isLoading ? 'Uploading...' : 'Upload File'}
