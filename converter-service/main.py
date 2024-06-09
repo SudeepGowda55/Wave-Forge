@@ -82,7 +82,7 @@ def process_and_get_url(data):
         form_data = {
             "fileurl": "conversion to same format not possible",
             "usermail": email,
-            "fileid": file_id,
+            "fileid": Objfile_id,
         }
 
         url = os.getenv("POST_URL")
@@ -97,7 +97,7 @@ def process_and_get_url(data):
         form_data = {
             "fileurl": "conversion to same format not possible",
             "usermail": email,
-            "fileid": file_id,
+            "fileid": Objfile_id,
         }
 
         url = os.getenv("POST_URL")
@@ -118,7 +118,7 @@ def process_and_get_url(data):
         form_data = {
             "fileurl": converted_file_url,
             "usermail": email,
-            "fileid": file_id,
+            "fileid": Objfile_id,
         }
 
         url = os.getenv("POST_URL")
