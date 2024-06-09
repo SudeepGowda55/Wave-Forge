@@ -4,7 +4,9 @@
 // pages/signup.tsx
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+
 
 const SignupPage: React.FC = () => {
   const router = useRouter();
@@ -14,7 +16,13 @@ const SignupPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [jwtToken, setJwtToken] = useState('');
-
+useEffect(() => {
+    const storedUsername = localStorage.getItem('username');
+    const storedUsermail = localStorage.getItem('usermail');
+    if (storedUsername && storedUsermail) {
+      router.push('/dashboard');
+    }
+  }, [router]);
   const handleSignup = async () => {
     try {
       const response = await fetch('https://kube.nostrclient.social/signup', {
