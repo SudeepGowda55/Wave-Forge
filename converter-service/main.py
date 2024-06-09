@@ -47,36 +47,32 @@ def process_and_get_url(data):
         converted_file_url = conversions.convert_video_to_audio(
             conversion_type, file_name, file_id
         )
-        sampling_rate = data.get(sampling_rate)
         if sampling_rate != "n/a":
             converted_file_url = conversions.change_audio_sampling_rate_wav(
-                sampling_rate, file_id
+                sampling_rate, file_name, file_id
             )
 
     elif conversion_type.lower() == "mp4_to_mp3":
         converted_file_url = conversions.convert_video_to_audio(
             conversion_type, file_name, file_id
         )
-        sampling_rate = data.get(sampling_rate)
         if sampling_rate != "n/a":
             converted_file_url = conversions.change_audio_sampling_rate_mp3(
-                sampling_rate, file_id
+                sampling_rate, file_name, file_id
             )
 
     elif conversion_type.lower() == "mp3_to_wav":
         converted_file_url = conversions.convert_mp3_to_wav(file_name, file_id)
-        sampling_rate = data.get(sampling_rate)
         if sampling_rate != "n/a":
             converted_file_url = conversions.change_audio_sampling_rate_wav(
-                sampling_rate, file_id
+                sampling_rate, file_name, file_id
             )
 
     elif conversion_type.lower() == "wav_to_mp3":
         converted_file_url = conversions.convert_wav_to_mp3(file_name, file_id)
-        sampling_rate = data.get(sampling_rate)
         if sampling_rate != "n/a":
             converted_file_url = conversions.change_audio_sampling_rate_mp3(
-                sampling_rate, file_id
+                sampling_rate, file_name, file_id
             )
 
     elif conversion_type.lower() == "mp3_to_mp3":
