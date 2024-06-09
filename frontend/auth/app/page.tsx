@@ -42,6 +42,9 @@ const SignupPage: React.FC = () => {
       
       if(data)
         console.log("sdfusdfsdf signup")
+       localStorage.setItem('username', username);
+      localStorage.setItem('usermail', email);
+      localStorage.setItem('token',data);
       router.push('/dashboard');
     } catch (error) {
       console.error('Signup error:', error);
@@ -52,9 +55,9 @@ const SignupPage: React.FC = () => {
    <div className="flex min-h-screen">
       <div className="w-1/2 flex flex-col justify-center items-center p-8">
         <h1 className="text-4xl font-bold mb-4">Create an account</h1>
-        <p className="mb-4">
+      {/*   <p className="mb-4">
           Already have an account? <a href="#" className="text-blue-500">Sign in</a>
-        </p>
+        </p> */}
         <div className="w-full max-w-sm">
           <div className="mb-4">
             <label htmlFor="firstName" className="block text-gray-700">Name</label>
