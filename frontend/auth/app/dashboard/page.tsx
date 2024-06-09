@@ -3,18 +3,28 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-const FilesPage = () => {
-  const [files, setFiles] = useState<string | null>(null);
- // const [usermail, setUsermail] = useState<string>('user@example.com'); // Replace with actual user email
+
+interface FileData {
+  fileid: string;
+  filename: string;
+  fileurl: string;
+  destaudioformat: string;
+  samplingrate: string;
+}
+
+const FilesPage: React.FC = () => {
+  const [files, setFiles] = useState<FileData[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [usermail, setUsermail] = useState<string | undefined>(undefined);
-const router = useRouter();
-useEffect(() => {
+  const router = useRouter();
+
+  useEffect(() => {
     const storedUsermail = localStorage.getItem('usermail');
     if (storedUsermail) {
       setUsermail(storedUsermail);
     }
   }, []);
+
   const handleGetFiles = async () => {
     setIsLoading(true);
 
@@ -26,7 +36,8 @@ useEffect(() => {
       });
 
       if (response.status === 200) {
-        setFiles(response.data);
+        const filesData = Array.isArray(response.data) ? response.data : JSON.parse(response.data);
+        setFiles(filesData);
       } else {
         console.error('Error fetching files', response.data);
       }
@@ -36,13 +47,14 @@ useEffect(() => {
       setIsLoading(false);
     }
   };
-const handleUploadRedirect = () => {
+
+  const handleUploadRedirect = () => {
     router.push('/upload');
   };
+
   return (
-     <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-         
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Welcome to <span className="text-blue-600">MyFolders</span></h1>
           <p className="text-gray-600 mt-2">Easily and safely helps collect and organize your documents</p>
@@ -69,10 +81,31 @@ const handleUploadRedirect = () => {
         >
           Upload
         </button>
-        {files && (
-          <pre className="mt-4 p-4 bg-gray-200 rounded-lg text-sm text-gray-800">{files}</pre>
-        )}
       </div>
+      {files && (
+        <div className="mt-6 w-full max-w-4xl">
+          <table className="min-w-full bg-white border border-gray-200">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b">File ID</th>
+                <th className="py-2 px-4 border-b">Filename</th>
+                <th className="py-2 px-4 border-b">Audio Format</th>
+                <th className="py-2 px-4 border-b">Sampling Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {files.map((file) => (
+                <tr key={file.fileid}>
+                  <td className="py-2 px-4 border-b">{file.fileid}</td>
+                  <td className="py-2 px-4 border-b">{file.filename}</td>
+                  <td className="py-2 px-4 border-b">{file.destaudioformat}</td>
+                  <td className="py-2 px-4 border-b">{file.samplingrate}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
