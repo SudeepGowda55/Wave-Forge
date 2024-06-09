@@ -30,9 +30,12 @@ def process_and_get_url(data):
     Objfile_id = data.get("fileid")
     destformat = data.get("destaudioformat")
     sampling_rate = data.get("samplingrate")
+    if sampling_rate != "n/a":
+        sampling_rate = int(sampling_rate)
 
     fname, extension = os.path.splitext(file_name)
     initformat = extension.lstrip(".")
+    file_name = fname
 
     conversion_type = f"{initformat}_to_{destformat}"
     converted_file_url = None
