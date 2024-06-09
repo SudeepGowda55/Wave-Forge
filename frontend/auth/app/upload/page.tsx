@@ -10,14 +10,24 @@ const DashboardPage = () => {
   const [objectId, setObjectId] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [usermail, setUsermail] = useState<string | null>(null);
-  const [fileType, setFileType] = useState<string>('mp3');
-  const [samplingRate, setSamplingRate] = useState<string>('44100');
-  const router = useRouter();
+    const [firstname, setfirstname] = useState<string | null>(null);
 
+  const [fileType, setFileType] = useState<string>('mp3');
+  
+  const router = useRouter();
+ const [samplingRate, setSamplingRate] = useState<string>('n/a');
+  const [customSamplingRate, setCustomSamplingRate] = useState<string>('');
+  const [isCustom, setIsCustom] = useState(false);
   useEffect(() => {
     const storedUsermail = localStorage.getItem('usermail');
     if (storedUsermail) {
       setUsermail(storedUsermail);
+    }
+  }, []);
+  useEffect(() => {
+    const storedfirstname = localStorage.getItem('username');
+    if (storedfirstname) {
+      setfirstname(storedfirstname);
     }
   }, []);
 
@@ -27,7 +37,21 @@ const DashboardPage = () => {
     setObjectId(null); // Reset objectId on file change
     setProgress(0); // Reset progress on file change
   };
+const handleSamplingRateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === 'custom') {
+      setIsCustom(true);
+    } else {
+      setIsCustom(false);
+      setSamplingRate(value);
+    }
+  };
 
+  const handleCustomSamplingRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCustomSamplingRate(value);
+    setSamplingRate(value);
+  };
   const handleFileUpload = async () => {
     if (!file) {
       console.error('No file selected');
@@ -37,8 +61,13 @@ const DashboardPage = () => {
       console.error('No user email found');
       return;
     }
+     if (!firstname) {
+      console.error('No firstname found');
+      return;
+    }
     setIsLoading(true);
     const formData = new FormData();
+    formData.append('firstname',firstname)
     formData.append('sourcefile', file);
     formData.append('usermail', usermail); // Use email from local storage
     formData.append('destaudioformat', fileType); // Use selected file type
@@ -120,14 +149,24 @@ const DashboardPage = () => {
           <div className="mb-4">
             <label className="block text-sm text-gray-700">Sampling Rate</label>
             <select
-              value={samplingRate}
-              onChange={(e) => setSamplingRate(e.target.value)}
+              value={isCustom ? 'custom' : samplingRate}
+              onChange={handleSamplingRateChange}
               className="block w-full text-sm text-gray-900 border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
             >
               <option value="22400">22400</option>
               <option value="48000">48000</option>
               <option value="n/a">n/a</option>
+              <option value="custom">Custom</option>
             </select>
+            {isCustom && (
+              <input
+                type="number"
+                value={customSamplingRate}
+                onChange={handleCustomSamplingRateChange}
+                placeholder="Enter custom sampling rate"
+                className="mt-2 block w-full text-sm text-gray-900 border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+              />
+            )}
           </div>
           <button
             onClick={handleFileUpload}
