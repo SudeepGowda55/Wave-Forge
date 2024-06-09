@@ -143,7 +143,8 @@ const handleSamplingRateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
               className="block w-full text-sm text-gray-900 border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
             >
               <option value="mp3">MP3</option>
-              <option value="mp4">MP4</option>
+              <option value="wav">WAV</option>
+              
             </select>
           </div>
           <div className="mb-4">
