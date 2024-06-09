@@ -42,7 +42,7 @@ const SignupPage: React.FC = () => {
       
       if(data)
         console.log("sdfusdfsdf signup")
-       localStorage.setItem('username', username);
+       localStorage.setItem('username', firstName);
       localStorage.setItem('usermail', email);
       localStorage.setItem('token',data);
       router.push('/dashboard');
@@ -60,7 +60,7 @@ const SignupPage: React.FC = () => {
         </p> */}
         <div className="w-full max-w-sm">
           <div className="mb-4">
-            <label htmlFor="firstName" className="block text-gray-700">Name</label>
+            <label htmlFor="firstName" className="block text-gray-700">FirstName</label>
             <input
               type="text"
               id="firstName"
