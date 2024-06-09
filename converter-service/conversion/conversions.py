@@ -8,37 +8,28 @@ dotenv.load_dotenv()
 gridfs_bucket = mongodb.connect_to_mongodb()
 cloudinary = cloudinary.cloudinary_connection
 
-
 def convert_video_to_audio(conversion_type, file_name, file_id):
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
         try:
-            data = gridfs_bucket.download_to_stream(ObjectId(file_id), temp_file)
+            gridfs_bucket.download_to_stream(ObjectId(file_id), temp_file)
             temp_file.seek(0)
 
             if conversion_type.lower() == "mp4_to_wav":
-                audio_clip = pydub.AudioSegment.from_file_using_temporary_files(
-                    temp_file
-                )
+                audio_clip = pydub.AudioSegment.from_file(temp_file.name)
                 audio_clip.export(temp_file.name, format="wav")
 
                 with open(temp_file.name, "rb") as f:
-                    response = uploader.upload(
-                        f, resource_type="auto", public_id=file_name
-                    )
+                    response = uploader.upload(f, resource_type="auto", public_id=file_name)
                     url = response["url"]
                     print(f"Uploaded audio URL: {url}")
                     return url
 
             if conversion_type.lower() == "mp4_to_mp3":
-                audio_clip = pydub.AudioSegment.from_file_using_temporary_files(
-                    temp_file
-                )
+                audio_clip = pydub.AudioSegment.from_file(temp_file.name)
                 audio_clip.export(temp_file.name, format="mp3")
 
                 with open(temp_file.name, "rb") as f:
-                    response = uploader.upload(
-                        f, resource_type="auto", public_id=file_name
-                    )
+                    response = uploader.upload(f, resource_type="auto", public_id=file_name)
                     url = response["url"]
                     print(f"Uploaded audio URL: {url}")
                     return url
@@ -46,8 +37,7 @@ def convert_video_to_audio(conversion_type, file_name, file_id):
         except Exception as e:
             print(f"Error converting or uploading audio: {e}")
             return None
-        finally:
-            temp_file.close()
+
 
 
 def change_audio_sampling_rate_wav(sampling_rate, file_name, file_id):
@@ -72,9 +62,6 @@ def change_audio_sampling_rate_wav(sampling_rate, file_name, file_id):
             print(f"Error converting or uploading audio: {e}")
             return None
 
-        finally:
-            temp_file.close()
-
 
 def change_audio_sampling_rate_mp3(sampling_rate, file_name, file_id):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -98,12 +85,9 @@ def change_audio_sampling_rate_mp3(sampling_rate, file_name, file_id):
             print(f"Error converting or uploading audio: {e}")
             return None
 
-        finally:
-            temp_file.close()
-            temp_upload_file.close()
 
 
-def change_audio_sampling_rate(sampling_rate, file_id, file_name):
+def change_sampling_rate(sampling_rate, file_id, file_name):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         try:
             data = gridfs_bucket.download_to_stream(ObjectId(file_id), temp_file)
@@ -139,9 +123,6 @@ def change_audio_sampling_rate(sampling_rate, file_id, file_name):
             print(f"An error occurred during conversion: {e}")
             return None
 
-        finally:
-            temp_file.close()
-            temp_upload_file.close()
 
 
 def convert_wav_to_mp3(file_name, file_id):
@@ -163,9 +144,6 @@ def convert_wav_to_mp3(file_name, file_id):
             print(f"An error occurred during conversion: {e}")
             return None
 
-        finally:
-            temp_file.close()
-
 
 def convert_mp3_to_wav(file_name, file_id):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -185,6 +163,3 @@ def convert_mp3_to_wav(file_name, file_id):
         except Exception as e:
             print(f"An error occurred during conversion: {e}")
             return None
-
-        finally:
-            temp_file.close()
