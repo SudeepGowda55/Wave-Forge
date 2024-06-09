@@ -101,7 +101,11 @@ const FilesPage: React.FC = () => {
                   <td className="py-2 px-4 border-b">{file.filename}</td>
                   <td className="py-2 px-4 border-b">{file.destaudioformat}</td>
                   <td className="py-2 px-4 border-b">{file.samplingrate}</td>
-                  <td className="py-2 px-4 border-b">{file.fileurl}</td>
+                 <td className="py-2 px-4 border-b">
+                    <a href={file.fileurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {file.fileurl}
+                    </a>
+                  </td>
                 </tr>
               ))}
             </tbody>
