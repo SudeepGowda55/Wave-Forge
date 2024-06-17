@@ -4,7 +4,7 @@ request the controller at https://kube.nostrclient.social/
 
 example post request to https://kube.nostrclient.social/validatejwt
 
-![alt text](https://github.com/SudeepGowda55/Audio_Conversion-Microservice/blob/main/images/mini-arch.png?raw=true)
+![Architecture_diagram](https://github.com/SudeepGowda55/Audio_Conversion-Microservice/blob/main/images/mini-arch.png?raw=true)
 
 There are Four Micro Services
 
