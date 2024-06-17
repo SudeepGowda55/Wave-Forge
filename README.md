@@ -1,8 +1,10 @@
-Currently its running Digital ocean kubernetes Cluster with ingress controller and Load Balancer 
+Currently, the application is running in a Digital ocean Kubernetes Cluster with an ingress controller and Load Balancer 
 
-make request to controler https://kube.nostrclient.social/
+request the controller at https://kube.nostrclient.social/
 
 example post request to https://kube.nostrclient.social/validatejwt
+
+![alt text](https://github.com/SudeepGowda55/Audio_Conversion-Microservice/blob/main/images/mini-arch.png?raw=true)
 
 There are Four Micro Services
 
