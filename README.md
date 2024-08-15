@@ -1,12 +1,14 @@
-Currently, the application is running in a Digital ocean Kubernetes Cluster with an ingress controller and Load Balancer 
+Click here to visit the app https://audio-conversion-microservice.vercel.app/ 
+
+Currently the k8s cluster is removed so need to deploy it 
+
+The application requires ingress controller and Load Balancer 
 
 request the controller at https://kube.nostrclient.social/
 
 example post request to https://kube.nostrclient.social/validatejwt
 
 ![Architecture_diagram](https://github.com/SudeepGowda55/Audio_Conversion-Microservice/blob/main/images/mini-arch.png?raw=true)
-
-https://audio-conversion-microservice.vercel.app/ 
 
 There are Four Micro Services
 
