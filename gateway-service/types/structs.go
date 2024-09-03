@@ -10,7 +10,6 @@ type GridfsFile struct {
 type UserSignupData struct {
 	UserMail  string `json:"usermail"`
 	FirstName string `json:"firstname"`
-	LastName  string `json:"lastname"`
 	UserName  string `json:"username"`
 }
 
