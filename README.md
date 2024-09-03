@@ -1,10 +1,8 @@
 Click here to visit the app https://audio-conversion-microservice.vercel.app/ 
 
-Currently the k8s cluster is removed so need to deploy it 
+The application requires ingress controller and Load Balancer when deployed in k8s
 
-The application requires ingress controller and Load Balancer 
-
-request the controller at https://kube.nostrclient.social/
+request the controller/gateway at https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/
 
 example post request to https://kube.nostrclient.social/validatejwt
 
@@ -18,7 +16,7 @@ Docker File: docker run -p 8000:8000 sudeepgowda55/gateway-service:latest
 
 2. Authentication Service
 
-Docker File: docker run sudeepgowda55/auth-service:latest
+Docker File: docker run -p 8001:8001 sudeepgowda55/auth-service:latest
 
 3. Converter Service
 

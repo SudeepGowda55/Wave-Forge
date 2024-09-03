@@ -74,7 +74,7 @@ const handleSamplingRateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     formData.append('samplingrate', samplingRate); // Use selected sampling rate
 
     try {
-      const response = await axios.post('https://kube.nostrclient.social/upload', formData, {
+      const response = await axios.post('https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },

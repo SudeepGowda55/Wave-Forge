@@ -29,7 +29,7 @@ const FilesPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('https://kube.nostrclient.social/getfiles', null, {
+      const response = await axios.post('https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/getfiles', null, {
         headers: {
           'usermail': usermail,
         },

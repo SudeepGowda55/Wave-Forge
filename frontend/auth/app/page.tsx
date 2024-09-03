@@ -25,7 +25,7 @@ useEffect(() => {
   }, [router]);
   const handleSignup = async () => {
     try {
-      const response = await fetch('https://kube.nostrclient.social/signup', {
+      const response = await fetch('https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
