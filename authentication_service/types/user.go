@@ -4,7 +4,6 @@ import "github.com/golang-jwt/jwt/v5"
 
 type UserSignup struct {
 	FirstName string `json:"firstname"`
-	LastName  string `json:"lastname"`
 	UserName  string `json:"username"`
 	UserMail  string `json:"usermail"`
 }

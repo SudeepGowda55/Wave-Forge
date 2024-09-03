@@ -42,7 +42,7 @@ func Signup(contextProvider *gin.Context) {
 		return
 	}
 
-	_, err := database.Db.Exec("INSERT INTO users (firstname, lastname, username, usermail) VALUES ($1, $2, $3, $4)", userdata.FirstName, userdata.LastName, userdata.UserName, userdata.UserMail)
+	_, err := database.Db.Exec("INSERT INTO users (firstname, username, usermail) VALUES ($1, $2, $3)", userdata.FirstName, userdata.UserName, userdata.UserMail)
 
 	if err != nil {
 		contextProvider.IndentedJSON(http.StatusInternalServerError, err.Error())

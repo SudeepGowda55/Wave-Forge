@@ -1,28 +1,28 @@
 "use client"
-// pages/signup.tsx
 
 // pages/signup.tsx
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-
-
 const SignupPage: React.FC = () => {
   const router = useRouter();
+
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const [jwtToken, setJwtToken] = useState('');
-useEffect(() => {
+
+  useEffect(() => {
     const storedUsername = localStorage.getItem('username');
     const storedUsermail = localStorage.getItem('usermail');
     if (storedUsername && storedUsermail) {
       router.push('/dashboard');
     }
   }, [router]);
+
   const handleSignup = async () => {
     try {
       const response = await fetch('https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/signup', {
@@ -32,27 +32,26 @@ useEffect(() => {
         },
         body: JSON.stringify({
           firstname: firstName,
-          lastname: lastName,
           username: username,
           usermail: email,
         }),
       });
-       console.log('Signup response status:', response.status);
+      console.log('Signup response status:', response.status);
       if (!response.ok) {
         throw new Error('Failed to signup');
       }
 
       const data = await response.json();
-        console.log('Signup response data:', data);
-     //   console.log('JWT Token:', data.token); // Log JWT token to console
+      console.log('Signup response data:', data);
+      //   console.log('JWT Token:', data.token); // Log JWT token to console
       setJwtToken(data.token);
       // Redirect after successful signup
-      
-      if(data)
+
+      if (data)
         console.log("sdfusdfsdf signup")
-       localStorage.setItem('username', firstName);
+      localStorage.setItem('username', firstName);
       localStorage.setItem('usermail', email);
-      localStorage.setItem('token',data);
+      localStorage.setItem('token', data);
       router.push('/dashboard');
     } catch (error) {
       console.error('Signup error:', error);
@@ -60,10 +59,10 @@ useEffect(() => {
   };
 
   return (
-   <div className="flex min-h-screen">
+    <div className="flex min-h-screen">
       <div className="w-1/2 flex flex-col justify-center items-center p-8">
         <h1 className="text-4xl font-bold mb-10">Create an account</h1>
-      
+
         <div className="w-full max-w-sm">
           <div className="mb-4">
             <label htmlFor="firstName" className="block text-gray-700">FirstName</label>
@@ -118,15 +117,15 @@ useEffect(() => {
         </div>
         {jwtToken && <p className="mt-4">JWT Token: {jwtToken}</p>}
       </div>
-     <div className="w-1/2 bg-gray-100 flex justify-center items-center ">
+      <div className="w-1/2 bg-gray-100 flex justify-center items-center ">
         <video
-        key="background-video"
+          key="background-video"
           className="w-full h-full object-cover"
           //controls
           autoPlay
           loop
           muted
-           playsInline
+          playsInline
           src="https://cdn.dribbble.com/uploads/48226/original/b8bd4e4273cceae2889d9d259b04f732.mp4?1689028949"
         />
       </div>
