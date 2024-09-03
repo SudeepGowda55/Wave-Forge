@@ -1,6 +1,6 @@
-Click here to visit the app https://audio-conversion-microservice.vercel.app/ 
+Click here to visit the app https://waveforge.sudeepgowda.tech/ 
 
-The application requires ingress controller and Load Balancer when deployed in k8s
+The application requires an ingress controller and Load Balancer when deployed in k8s
 
 request the controller/gateway at https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/
 
@@ -11,7 +11,9 @@ There are Four Micro Services
 1. Gateway Service
 
 Docker File: sudeepgowda55/gateway-service:latest
+
 Docker Run CMD: docker run -p 8000:8000 -d sudeepgowda55/gateway-service:latest
+
 Currently working in: koyeb.app https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/
 
 Example endpoint: https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/validatejwt
@@ -19,19 +21,25 @@ Example endpoint: https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/valida
 2. Authentication Service
 
 Docker File: sudeepgowda55/auth-service:latest
+
 Docker Run CMD: docker run -p 8001:8001 -d sudeepgowda55/auth-service:latest
+
 Currently working in: aws ubuntu ec2 instance http://44.220.136.208:8001/getfiles 
 
 3. Converter Service
 
 Docker File: sudeepgowda55/converter-service:latest
+
 Docker Run CMD: docker run -d sudeepgowda55/converter-service:latest
+
 Currently working in: aws ubuntu ec2 instance http://44.220.136.208
 
 4. Notification Service
 
 Docker File: sudeepgowda55/notification-service:latest
+
 Docker Run CMD: docker run -d sudeepgowda55/notification-service:latest
+
 Currently working in: aws ubuntu ec2 instance http://44.220.136.208
 
 You need to run microservices in this order
