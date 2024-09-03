@@ -9,4 +9,4 @@ RUN go build -o main
 
 EXPOSE 8001
 
-CMD [ "./main" ]
+CMD [ "./main", "&", "sleep", "infinity" ]

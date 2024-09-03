@@ -1,5 +1,9 @@
 FROM node:latest
+
 WORKDIR /app
+
 COPY . .
+
 RUN npm install --production
-CMD ["node", "server.js"]
+
+CMD ["node", "server.js", "&", "sleep", "infinity"]

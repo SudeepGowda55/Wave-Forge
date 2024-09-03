@@ -4,33 +4,44 @@ The application requires ingress controller and Load Balancer when deployed in k
 
 request the controller/gateway at https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/
 
-example post request to https://kube.nostrclient.social/validatejwt
-
 ![Architecture_diagram](https://github.com/SudeepGowda55/Audio_Conversion-Microservice/blob/main/images/mini-arch.png?raw=true)
 
 There are Four Micro Services
 
 1. Gateway Service
 
-Docker File: docker run -p 8000:8000 sudeepgowda55/gateway-service:latest
+Docker File: sudeepgowda55/gateway-service:latest
+Docker Run CMD: docker run -p 8000:8000 -d sudeepgowda55/gateway-service:latest
+Currently working in: koyeb.app https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/
+
+Example endpoint: https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/validatejwt
 
 2. Authentication Service
 
-Docker File: docker run -p 8001:8001 sudeepgowda55/auth-service:latest
+Docker File: sudeepgowda55/auth-service:latest
+Docker Run CMD: docker run -p 8001:8001 -d sudeepgowda55/auth-service:latest
+Currently working in: aws ubuntu ec2 instance http://44.220.136.208:8001/getfiles 
 
 3. Converter Service
 
-Docker File: 
+Docker File: sudeepgowda55/converter-service:latest
+Docker Run CMD: docker run -d sudeepgowda55/converter-service:latest
+Currently working in: aws ubuntu ec2 instance http://44.220.136.208
 
 4. Notification Service
 
-Docker File: docker run sudeepgowda55/notification-service:latest
+Docker File: sudeepgowda55/notification-service:latest
+Docker Run CMD: docker run -d sudeepgowda55/notification-service:latest
+Currently working in: aws ubuntu ec2 instance http://44.220.136.208
 
-You need to run Gateway service First and then Authentication Service Followed by Converter Service and then Notification Service
+You need to run microservices in this order
+1. Authentication Service 
+    after the auth service is started, update the auth service ip in gateway service config
+2. Gateway service
+3. Converter Service and then 
+4. Notification Service
 
 Dont Change the order or else IP Addressing will change and services won't work
-
-After all the Docker containers are running make http requests to http://localhost:8000/
 
 For debugging 
 
