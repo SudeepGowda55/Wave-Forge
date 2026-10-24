@@ -3,9 +3,9 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Split } from '@/components/Motion';
+import { Amp } from '@/components/Motion';
 
-const Forge = dynamic(() => import('@/components/Forge'), { ssr: false });
+const Film = dynamic(() => import('@/components/Film'), { ssr: false });
 
 const SignupPage: React.FC = () => {
   const router = useRouter();
@@ -72,20 +72,19 @@ const SignupPage: React.FC = () => {
   ];
 
   return (
-    <div className="relative z-10 grid min-h-screen lg:grid-cols-2">
-      <div className="flex flex-col justify-center px-4 pb-16 pt-28 sm:px-8 lg:px-16">
-        <p className="eyebrow mb-5" data-reveal>Step 0 · Account</p>
-        <Split text="Create an account" className="font-display text-5xl font-extrabold leading-[0.95] tracking-[-0.03em] sm:text-6xl" />
-        <p className="mt-4 max-w-sm text-bone/70" data-reveal>Your email is where the converted audio link is sent.</p>
+    <div className="relative z-10 grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+      <div className="flex flex-col justify-center px-4 pb-16 pt-28 sm:px-8 lg:pl-[max(2rem,calc((100vw-90rem)/2+2rem))]">
+        <Amp text="Load a new reel." className="title text-[clamp(3.6rem,8vw,7.5rem)]" />
+        <p className="mt-4 max-w-sm text-cream/85" data-reveal>Your email is where the converted audio link is sent.</p>
 
-        <form onSubmit={handleSignup} className="mt-10 w-full max-w-sm space-y-5" data-reveal>
+        <form onSubmit={handleSignup} className="plate mt-10 w-full max-w-md space-y-5 p-6" data-reveal>
           {fields.map((f) => (
             <div key={f.id}>
-              <label htmlFor={f.id} className="label">{f.label}</label>
+              <label htmlFor={f.id} className="tag">{f.label}</label>
               <input
                 type={f.type}
                 id={f.id}
-                className="field"
+                className="slot"
                 value={f.value}
                 onChange={(e) => f.set(e.target.value)}
                 autoComplete={f.auto}
@@ -93,16 +92,17 @@ const SignupPage: React.FC = () => {
               />
             </div>
           ))}
-          <button type="submit" disabled={isLoading} className="btn-hot mt-2 w-full" data-magnetic>
+          <button type="submit" disabled={isLoading} className="key-rec w-full" data-magnetic>
+            <span className="h-2.5 w-2.5 rounded-full bg-cream" aria-hidden="true" />
             {isLoading ? 'Signing up…' : 'Sign up'}
           </button>
-          {error && <p role="alert" className="font-mono text-xs text-ember">{error}</p>}
+          {error && <p role="alert" className="font-read text-xs font-medium text-rec">{error}</p>}
         </form>
-        {jwtToken && <p className="mt-4 break-all font-mono text-xs text-ash">JWT Token: {jwtToken}</p>}
+        {jwtToken && <p className="mt-4 break-all font-read text-xs text-cream/70">JWT Token: {jwtToken}</p>}
       </div>
-      <div className="relative hidden overflow-hidden border-l border-line bg-coal/40 lg:block">
-        <Forge mode="auto" className="absolute inset-0" />
-        <p className="eyebrow absolute bottom-6 left-8">Frame → queue → forge → resample · simulated</p>
+      <div className="relative hidden overflow-hidden border-l-2 border-ink lg:block">
+        <Film mode="auto" className="absolute inset-0" />
+        <p className="absolute bottom-6 left-6 bg-ink px-2 py-1 font-read text-[11px] uppercase text-cream">Simulation · picture → queue → sound → samples</p>
       </div>
     </div>
   );

@@ -2,23 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-}
-
 html,
 body {
-  background: #0d0b09;
-  color: #efe6d8;
+  background: #1b2fe0;
+  color: #f4eedc;
 }
 
 body {
-  font-family: var(--font-display), system-ui, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-/* fixed pseudo-element, not background-attachment: fixed (repaints every scroll frame) */
+/* film grain + gate vignette, on a fixed pseudo-element (never background-attachment: fixed) */
 body::before {
   content: "";
   position: fixed;
@@ -26,13 +22,13 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60% 50% at 80% 110%, rgba(255, 91, 31, 0.16), transparent 70%),
-    radial-gradient(40% 40% at 0% 0%, rgba(129, 147, 166, 0.1), transparent 70%);
+    radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(12, 15, 42, 0.45) 100%),
+    repeating-linear-gradient(90deg, rgba(244, 238, 220, 0.025) 0 1px, transparent 1px 4px);
 }
 
 ::selection {
-  background: #ff5b1f;
-  color: #0d0b09;
+  background: #ff3d2e;
+  color: #f4eedc;
 }
 
 html.lenis,
@@ -44,58 +40,92 @@ html.lenis body {
 }
 
 @layer components {
-  .eyebrow {
-    @apply font-mono text-[11px] uppercase tracking-[0.22em] text-ash;
+  /* hardware keys: square, raised, they physically press in */
+  .key {
+    @apply relative inline-flex select-none items-center justify-center gap-2.5 overflow-hidden border-2 border-ink px-6 py-3.5 font-body text-sm font-bold uppercase tracking-wide transition-[transform,box-shadow,background-color] duration-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cream disabled:cursor-not-allowed disabled:opacity-60;
+    box-shadow: 0 5px 0 0 #0c0f2a;
   }
-  .btn {
-    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-6 py-3 font-mono text-xs font-medium uppercase tracking-[0.16em] transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber disabled:cursor-not-allowed disabled:opacity-50;
+  .key:active:not(:disabled) {
+    transform: translateY(5px);
+    box-shadow: 0 0 0 0 #0c0f2a;
   }
-  .btn-hot {
-    @apply btn bg-ember text-soot hover:bg-amber;
+  .key-rec {
+    @apply key bg-rec text-cream hover:bg-[#ff5446];
   }
-  .btn-cold {
-    @apply btn border border-line text-bone hover:border-bone/40 hover:bg-bone/5;
+  .key-cream {
+    @apply key bg-cream text-ink hover:bg-white;
   }
-  .panel {
-    @apply rounded-2xl border border-line bg-coal/80;
+  .led {
+    @apply inline-block h-2 w-2 shrink-0 bg-cream/30;
   }
-  .field {
-    @apply mt-2 block w-full rounded-lg border border-line bg-soot px-4 py-3 font-mono text-sm text-bone placeholder:text-ash/60 transition-colors focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber;
+  .led-on {
+    @apply bg-rec;
+    box-shadow: 0 0 10px 2px rgba(255, 61, 46, 0.8);
   }
-  .label {
-    @apply font-mono text-[11px] uppercase tracking-[0.18em] text-ash;
+  /* cream faceplate panels on the blue field */
+  .plate {
+    @apply border-2 border-ink bg-cream text-ink;
+    box-shadow: 8px 8px 0 0 #0c0f2a;
+  }
+  .slot {
+    @apply mt-2 block w-full border-2 border-ink bg-white px-4 py-3 font-read text-sm text-ink placeholder:text-ink/40 focus:bg-[#fffdf6] focus:outline-none focus:ring-4 focus:ring-rec/30;
+  }
+  .tag {
+    @apply font-read text-[11px] font-medium uppercase text-ink/60;
+  }
+  .title {
+    @apply font-title font-black uppercase leading-[0.86] tracking-[-0.01em];
   }
 }
 
-/* kinetic headline masks: spaces live outside .mask so words don't glue */
-.mask {
+/* amplitude reveal: letters swell from a flat line */
+.amp > span > span > span {
   display: inline-block;
-  overflow: hidden;
-  vertical-align: top;
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
-}
-.mask > span {
-  display: inline-block;
+  transform-origin: 50% 55%;
   will-change: transform;
 }
 
-/* press spark */
-.spark {
+/* press burst: meter bars that spike out of the click point */
+.burst {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  margin: -4px 0 0 -4px;
-  border-radius: 9999px;
+  width: 3px;
+  height: 14px;
+  margin: -14px 0 0 -1.5px;
+  transform-origin: 50% 100%;
+  background: currentColor;
   pointer-events: none;
-  background: radial-gradient(circle, #fff1dc 0%, #ffb648 40%, transparent 70%);
-  animation: spark 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: burst 520ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
 }
-@keyframes spark {
-  to {
-    transform: scale(28);
+@keyframes burst {
+  0% {
+    transform: rotate(var(--r)) translateY(-2px) scaleY(0.2);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--r)) translateY(-22px) scaleY(1);
     opacity: 0;
   }
+}
+
+/* sprocket holes along a film edge */
+.sprockets {
+  background-image: radial-gradient(circle at 50% 50%, #1b2fe0 0 3.5px, transparent 4px);
+  background-size: 16px 12px;
+}
+
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+/* DAW playhead cursor (fine pointers only; native cursor stays) */
+#playhead {
+  display: none;
+}
+.has-playhead #playhead {
+  display: block;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -104,40 +134,5 @@ html.lenis body {
   *::after {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
-  }
-}
-
-/* follower cursor (fine pointers only, native cursor stays) */
-.has-cursor #cursor-dot,
-.has-cursor #cursor-ring {
-  display: block;
-}
-#cursor-dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 9999px;
-  background: #ff5b1f;
-}
-#cursor-ring {
-  width: 36px;
-  height: 36px;
-  margin: -18px 0 0 -18px;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 182, 72, 0.5);
-  transition: width 250ms, height 250ms, margin 250ms, border-color 250ms, background-color 250ms;
-}
-#cursor-ring.is-hot {
-  width: 60px;
-  height: 60px;
-  margin: -30px 0 0 -30px;
-  border-color: #ffb648;
-  background-color: rgba(255, 91, 31, 0.08);
-}
-
-@keyframes rowIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
   }
 }

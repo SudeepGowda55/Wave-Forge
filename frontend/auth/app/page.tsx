@@ -5,52 +5,48 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Marquee, ScrubCount, Split } from "@/components/Motion";
+import { Amp, TapeCounter, VuMeter } from "@/components/Motion";
+import type { Job } from "@/components/Film";
 import { forge } from "@/lib/site";
 
 gsap.registerPlugin(ScrollTrigger);
 
 // start fetching the 3D chunk as soon as this module evaluates, in parallel with hydration
-const loadForge = () => import("@/components/Forge");
-if (typeof window !== "undefined") loadForge();
-const Forge = dynamic(loadForge, { ssr: false });
+const loadFilm = () => import("@/components/Film");
+if (typeof window !== "undefined") loadFilm();
+const Film = dynamic(loadFilm, { ssr: false });
 
 const CHAPTERS = [
   {
-    tag: "01 · Intake",
-    title: "Your video lands in GridFS.",
-    body: "The Go + Gin gateway streams the upload straight into MongoDB GridFS, along with the format and sampling rate you picked.",
+    word: "Intake",
+    line: "Your video lands in MongoDB GridFS. The Go + Gin gateway stores it with the format and sampling rate you picked.",
   },
   {
-    tag: "02 · Queue",
-    title: "A message joins file_uploaded.",
-    body: "The gateway publishes to RabbitMQ and answers you at once. The converter consumes at its own pace, so uploads never wait on encoding.",
+    word: "Queue",
+    line: "The gateway drops a message on RabbitMQ's file_uploaded queue and answers at once. Nobody waits on encoding.",
   },
   {
-    tag: "03 · Forge",
-    title: "pydub pulls the sound out.",
-    body: "The Python converter fetches the file from GridFS and exports its audio track as MP3 or WAV.",
+    word: "Extract",
+    line: "The Python converter pulls the file from GridFS and pydub lifts the audio track off the picture, as MP3 or WAV.",
   },
   {
-    tag: "04 · Resample & deliver",
-    title: "Re-sampled, stored, mailed.",
-    body: "Pick 22,400 Hz, 48,000 Hz or a custom rate and it is re-sampled. The result goes to Cloudinary, and file_converted_notification triggers a Mailgun email with the link.",
+    word: "Resample",
+    line: "Picked 22,400 Hz, 48,000 Hz or a custom rate? It is re-sampled, stored on Cloudinary, and Mailgun emails you the link.",
   },
 ];
 
-const STACK = ["Go", "Gin", "MongoDB GridFS", "RabbitMQ", "Python", "pydub", "Cloudinary", "Node.js", "Mailgun", "PostgreSQL", "Kubernetes", "Next.js"];
-
 const SPECS = [
-  { n: 4, label: "microservices", note: "gateway, auth, converter, notification" },
-  { n: 2, label: "RabbitMQ queues", note: "file_uploaded, file_converted_notification" },
-  { n: 2, label: "output formats", note: "MP3 and WAV" },
-  { n: 48000, label: "Hz top preset", note: "22,400 Hz preset, or any custom rate" },
+  { n: 4, label: "microservices", note: "gateway · auth · converter · notification" },
+  { n: 2, label: "RabbitMQ queues", note: "file_uploaded · file_converted_notification" },
+  { n: 2, label: "output formats", note: "MP3 · WAV" },
+  { n: 48000, label: "Hz, top preset", note: "or 22,400 Hz, or any custom rate" },
 ];
 
 export default function Home() {
   const story = useRef<HTMLElement>(null);
-  const canvasWrap = useRef<HTMLDivElement>(null);
+  const filmWrap = useRef<HTMLDivElement>(null);
   const [chapter, setChapter] = useState(0);
+  const [job, setJob] = useState<Job | null>(null);
 
   useEffect(() => {
     forge.state = 0;
@@ -63,7 +59,10 @@ export default function Home() {
           end: "+=300%",
           pin: true,
           scrub: 0.8,
-          onUpdate: (st) => setChapter(Math.min(3, Math.floor(st.progress * 4))),
+          onUpdate: (st) => {
+            setChapter(Math.min(3, Math.floor(st.progress * 4)));
+            gsap.set(".reel-progress", { scaleX: st.progress });
+          },
         },
       })
         .to(forge, { state: 1, ease: "none", duration: 1 })
@@ -71,11 +70,10 @@ export default function Home() {
         .to(forge, { state: 3, ease: "none", duration: 1 })
         .to({}, { duration: 0.3 });
 
-      // once the story is over the particles sink back behind the content
-      gsap.to(canvasWrap.current, {
-        opacity: 0.12,
+      gsap.to(filmWrap.current, {
+        opacity: 0,
         ease: "none",
-        scrollTrigger: { trigger: "#after-story", start: "top bottom", end: "top 30%", scrub: true },
+        scrollTrigger: { trigger: "#after-story", start: "top bottom", end: "top 20%", scrub: true },
       });
     });
     return () => {
@@ -86,94 +84,123 @@ export default function Home() {
 
   return (
     <>
-      <div ref={canvasWrap} className="pointer-events-none fixed inset-0 z-0">
-        <Forge offset={0.2} className="h-full w-full" />
+      <div ref={filmWrap} className="pointer-events-none fixed inset-0 z-0">
+        <Film lift={0.12} drop={2.2} onJob={setJob} className="h-full w-full" />
       </div>
 
-      {/* hero */}
-      <section className="relative z-10 flex min-h-[100svh] flex-col justify-end pb-16 pt-28 lg:justify-center lg:pb-0">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-8">
-          <p className="eyebrow mb-6" data-reveal>
-            Video → audio, as a service
-          </p>
-          <Split
-            text="Forge any video into clean audio."
-            className="max-w-[11ch] font-display text-[clamp(3rem,8.5vw,7.5rem)] font-extrabold leading-[0.92] tracking-[-0.035em]"
-          />
-          <p className="mt-6 max-w-md text-lg text-bone/75" data-reveal>
-            Upload an MP4, choose MP3 or WAV and a sampling rate. Four microservices on Kubernetes do the rest and email you the link.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-3" data-reveal>
-            <Link href="/signup" className="btn-hot" data-magnetic>
-              Start forging →
-            </Link>
-            <Link href="/pipeline" className="btn-cold" data-magnetic>
-              See the pipeline
-            </Link>
+      {/* hero: title band on top, the film world in the middle, a faceplate along the bottom */}
+      <section className="relative z-10 flex min-h-[100svh] flex-col justify-between pt-24">
+        <div className="mx-auto w-full max-w-[90rem] px-4 sm:px-8">
+          <Amp text="Lift the sound" className="title text-[clamp(3.6rem,min(13vw,20vh),13.5rem)]" />
+          <Amp text="off the picture." className="title text-right text-[clamp(3.6rem,min(13vw,20vh),13.5rem)] text-cream/95" delay={0.35} />
+        </div>
+
+        <div className="mx-auto w-full max-w-[90rem] px-4 pb-6 sm:px-8">
+          <div className="plate grid gap-5 p-5 sm:p-6 lg:grid-cols-[1.4fr_1fr_auto] lg:items-center" data-reveal>
+            <p className="max-w-xl text-base leading-relaxed sm:text-lg">
+              Upload a video, pick <b>MP3</b> or <b>WAV</b> and a sampling rate. Four microservices on Kubernetes cut the audio out and email you the link.
+            </p>
+            <div className="border-ink/20 font-read text-xs lg:border-l-2 lg:pl-5" aria-live="polite">
+              <p className="tag mb-1">Simulation · not your file</p>
+              <p className="flex items-center gap-2">
+                <span className={`led ${job ? "led-on" : ""}`} aria-hidden="true" />
+                {job ? `Upload #${String(job.n).padStart(3, "0")} · ${job.format.toUpperCase()} · ${job.rate === "n/a" ? "original rate" : `${job.rate} Hz`}` : "Waiting for the first upload…"}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/signup" className="key-rec" data-magnetic>
+                <span className="h-2.5 w-2.5 rounded-full bg-cream" aria-hidden="true" /> Start
+              </Link>
+              <Link href="/pipeline" className="key-cream" data-magnetic>
+                Pipeline
+              </Link>
+            </div>
           </div>
         </div>
-        <p className="eyebrow absolute bottom-5 right-4 hidden text-[10px] sm:right-8 lg:block">Live render · simulated signal, not your file</p>
       </section>
 
-      {/* scroll-scrubbed story: the frame is queued, forged, then resampled */}
-      {/* React-owned wrapper: GSAP's pin-spacer is inserted inside it, so unmounting stays clean */}
+      {/* scroll-scrubbed story: the strip queues, the soundtrack peels off, then gets resampled */}
       <div>
-      <section ref={story} className="relative z-10 h-[100svh] overflow-hidden" aria-label="How a video becomes audio">
-        <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-t from-soot via-soot/80 to-transparent lg:w-[55%] lg:bg-gradient-to-r" aria-hidden="true" />
-        <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-14 sm:px-8 lg:justify-center lg:pb-0">
-          <div className="mb-8 flex gap-2" aria-hidden="true">
-            {CHAPTERS.map((_, i) => (
-              <span key={i} className={`h-1 rounded-full transition-all duration-500 ${i === chapter ? "w-10 bg-ember" : i < chapter ? "w-4 bg-amber/60" : "w-4 bg-line"}`} />
-            ))}
-          </div>
-          <div className="relative min-h-[16rem] max-w-md sm:min-h-[18rem]">
-            {CHAPTERS.map((c, i) => (
-              <article
-                key={c.tag}
-                className={`absolute inset-x-0 top-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${i === chapter ? "translate-y-0 opacity-100" : i < chapter ? "-translate-y-8 opacity-0" : "translate-y-8 opacity-0"}`}
-                aria-hidden={i !== chapter}
-              >
-                <p className="eyebrow mb-4 text-amber">{c.tag}</p>
-                <h2 className="font-display text-4xl font-bold leading-[1.02] tracking-tight sm:text-5xl">{c.title}</h2>
-                <p className="mt-5 text-base text-bone/75 sm:text-lg">{c.body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-      </div>
+        {/* React-owned wrapper: GSAP's pin-spacer is inserted inside it, so unmounting stays clean */}
+        <section ref={story} className="relative z-10 h-[100svh] overflow-hidden" aria-label="How a video becomes audio">
+          <div className="mx-auto flex h-full max-w-[90rem] flex-col justify-between px-4 pb-8 pt-24 sm:px-8">
+            <div className="flex items-start justify-between gap-6">
+              <div className="relative h-[clamp(5rem,15vw,13rem)] flex-1">
+                {CHAPTERS.map((c, i) => (
+                  <p
+                    key={c.word}
+                    className={`title absolute left-0 top-0 origin-[50%_55%] text-[clamp(5rem,15vw,13rem)] transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.3,1.6,0.5,1)] ${i === chapter ? "scale-y-100 opacity-100" : "scale-y-[0.04] opacity-0"}`}
+                    aria-hidden={i !== chapter}
+                  >
+                    {c.word}
+                  </p>
+                ))}
+              </div>
+              <p className="title pt-3 text-4xl text-cream/70 sm:text-6xl" aria-hidden="true">
+                0{chapter + 1}<span className="text-cream/30">/04</span>
+              </p>
+            </div>
 
-      <div id="after-story" className="relative z-10 bg-gradient-to-b from-transparent via-soot/90 to-soot">
-        <Marquee items={STACK} />
-
-        <section className="mx-auto max-w-7xl px-4 py-28 sm:px-8">
-          <p className="eyebrow mb-4">Spec sheet</p>
-          <Split as="h2" text="Small surface, real plumbing." className="max-w-2xl font-display text-4xl font-bold tracking-tight sm:text-6xl" />
-          <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-            {SPECS.map((s) => (
-              <div key={s.label} className="bg-soot p-7">
-                <div data-reveal>
-                  <ScrubCount to={s.n} className="font-display text-6xl font-extrabold tracking-tight text-amber" />
-                  <p className="mt-3 font-display text-lg font-semibold">{s.label}</p>
-                  <p className="mt-1 font-mono text-xs text-ash">{s.note}</p>
+            <div>
+              {/* film-style subtitle */}
+              <div className="relative mx-auto min-h-[6.5rem] max-w-3xl text-center sm:min-h-[5rem]">
+                {CHAPTERS.map((c, i) => (
+                  <p
+                    key={c.word}
+                    className={`absolute inset-x-0 bottom-0 transition-opacity duration-300 ${i === chapter ? "opacity-100" : "opacity-0"}`}
+                    aria-hidden={i !== chapter}
+                  >
+                    <span className="inline bg-ink box-decoration-clone px-3 py-1 text-lg leading-[1.9] text-cream sm:text-2xl sm:leading-[1.75]">{c.line}</span>
+                  </p>
+                ))}
+              </div>
+              <div className="mt-8 flex items-center gap-3 font-read text-[11px] uppercase text-cream/70">
+                <span>Reel</span>
+                <div className="relative h-2 flex-1 bg-ink/40">
+                  <div className="reel-progress absolute inset-0 origin-left scale-x-0 bg-rec" />
+                  {CHAPTERS.map((c, i) => (
+                    <span key={c.word} className={`absolute -top-5 ${i === 0 ? "" : i === CHAPTERS.length - 1 ? "-translate-x-full" : "-translate-x-1/2"}`} style={{ left: `${i * 33.33}%` }}>{c.word}</span>
+                  ))}
                 </div>
               </div>
-            ))}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="after-story" className="relative z-10">
+        <section className="mx-auto max-w-[90rem] px-4 py-24 sm:px-8">
+          <Amp as="h2" text="The deck, by the numbers." className="title mb-12 text-[clamp(3rem,8vw,7rem)]" />
+          <div className="plate grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+            <div className="border-b-2 border-ink p-6 lg:border-b-0 lg:border-r-2" data-reveal>
+              <VuMeter className="w-full max-w-md" />
+              <p className="tag mt-4 normal-case">Needle = how fast you&apos;re scrolling. Peg it to light the peak lamp.</p>
+            </div>
+            <div className="grid sm:grid-cols-2">
+              {SPECS.map((s, i) => (
+                <div
+                  key={s.label}
+                  className={`border-ink p-6 ${i < 3 ? "border-b-2" : ""} ${i === 2 ? "sm:border-b-0" : ""} ${i % 2 === 0 ? "sm:border-r-2" : ""}`}
+                  data-reveal
+                >
+                  <TapeCounter to={s.n} className="font-title text-7xl font-black text-ink" />
+                  <p className="mt-3 text-lg font-bold">{s.label}</p>
+                  <p className="tag mt-1 normal-case">{s.note}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 pb-32 sm:px-8">
-          <div className="panel relative overflow-hidden p-8 sm:p-14" data-reveal>
-            <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(255,91,31,0.25),transparent_65%)]" aria-hidden="true" />
-            <Split as="h2" text="Bring a video. Leave with a waveform." className="max-w-xl font-display text-4xl font-bold tracking-tight sm:text-5xl" />
-            <p className="mt-5 max-w-md text-bone/70">Create an account, drop an MP4 and you&apos;ll get an email when the audio is ready.</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/signup" className="btn-hot" data-magnetic>
-                Create account
-              </Link>
-              <Link href="/upload" className="btn-cold" data-magnetic>
-                I have one, upload
-              </Link>
+        <section className="mx-auto max-w-[90rem] px-4 pb-28 sm:px-8">
+          <div className="flex flex-col gap-8 border-t-2 border-cream/30 pt-12 lg:flex-row lg:items-end lg:justify-between">
+            <Amp as="h2" text="Roll it." className="title text-[clamp(5rem,18vw,16rem)]" />
+            <div className="max-w-md pb-4" data-reveal>
+              <p className="text-lg text-cream/85">Make an account, drop in an MP4 and the audio link lands in your inbox when the converter is done.</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/signup" className="key-rec" data-magnetic>Create account</Link>
+                <Link href="/upload" className="key-cream" data-magnetic>Upload a video</Link>
+              </div>
             </div>
           </div>
         </section>

@@ -9,19 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        soot: "#0d0b09",
-        coal: "#17130f",
-        ember: "#ff5b1f",
-        amber: "#ffb648",
-        molten: "#fff1dc",
-        steel: "#8193a6",
-        bone: "#efe6d8",
-        ash: "#a3998b",
-        line: "rgba(239,230,216,0.12)",
+        // klein = the medium (screen, signal path), cream = picture / paper, rec = sound, ink = structure
+        klein: "#1b2fe0",
+        deep: "#1222a8",
+        cream: "#f4eedc",
+        rec: "#ff3d2e",
+        ink: "#0c0f2a",
+        haze: "rgba(244,238,220,0.62)",
+        rule: "rgba(244,238,220,0.22)",
       },
       fontFamily: {
-        display: ["var(--font-display)", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        title: ["var(--font-title)", "Impact", "sans-serif"],
+        body: ["var(--font-body)", "system-ui", "sans-serif"],
+        read: ["var(--font-read)", "ui-monospace", "monospace"],
       },
     },
   },

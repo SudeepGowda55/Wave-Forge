@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
@@ -15,20 +15,27 @@ const NAV = [
   { href: "/dashboard", label: "Files" },
   { href: "/upload", label: "Upload" },
 ];
+// leader countdown number per destination reel
+const REEL: Record<string, number> = { "/": 1, "/pipeline": 2, "/upload": 3, "/dashboard": 4, "/signup": 5 };
 
-const BARS = ["#ff5b1f", "#ffb648", "#ff5b1f", "#17130f", "#ffb648", "#ff5b1f"];
+const timecode = (sec: number) => {
+  const f = Math.floor((sec % 1) * 24);
+  const s = Math.floor(sec);
+  return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f].map((n) => String(n).padStart(2, "0")).join(":");
+};
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const curtain = useRef<HTMLDivElement>(null);
+  const leader = useRef<HTMLDivElement>(null);
   const covered = useRef(false);
   const lenis = useRef<Lenis | null>(null);
+  const [reel, setReel] = useState(1);
 
   // smooth scroll on gsap's ticker, wired to ScrollTrigger
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const l = new Lenis({ lerp: 0.12 });
+    const l = new Lenis({ lerp: 0.1 });
     lenis.current = l;
     (window as unknown as { __lenis: Lenis }).__lenis = l; // lets scripted screenshots scroll
     l.on("scroll", ScrollTrigger.update);
@@ -41,7 +48,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // curtain in on internal link click, then navigate
+  // film leader: a frame pulls down into the gate, the countdown hand sweeps, then we cut to the new route
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       const a = (e.target as HTMLElement).closest("a");
@@ -51,34 +58,35 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       if (href === pathname) return;
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return router.push(href);
       covered.current = true;
-      const bars = curtain.current!.querySelectorAll(".bar");
+      setReel(REEL[href] ?? 1);
+      const el = leader.current!;
       gsap.timeline({ onComplete: () => router.push(href) })
-        .set(curtain.current, { visibility: "visible" })
-        .fromTo(bars, { yPercent: 100 }, { yPercent: 0, duration: 0.45, ease: "power3.inOut", stagger: 0.04 })
-        .fromTo(".curtain-label", { opacity: 0 }, { opacity: 1, duration: 0.2 }, "-=0.15");
+        .set(el, { visibility: "visible", yPercent: -100, "--a": "0deg" })
+        .to(el, { yPercent: 0, duration: 0.32, ease: "power4.in" })
+        .to(el, { yPercent: 1.2, duration: 0.05, yoyo: true, repeat: 1, ease: "none" }) // gate registration jitter
+        .to(el, { "--a": "360deg", duration: 0.42, ease: "none" }, "<");
     };
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
   }, [pathname, router]);
 
-  // on route change: reset scroll, lift the curtain, wire reveals for the new page
+  // on route change: reset scroll, advance the leader out of the gate, wire reveals
   useEffect(() => {
     lenis.current?.scrollTo(0, { immediate: true });
     window.scrollTo(0, 0);
     if (covered.current) {
       covered.current = false;
       gsap.timeline()
-        .to(".curtain-label", { opacity: 0, duration: 0.15 })
-        .to(curtain.current!.querySelectorAll(".bar"), { yPercent: -100, duration: 0.6, ease: "expo.out", stagger: 0.04 })
-        .set(curtain.current, { visibility: "hidden" });
+        .to(leader.current, { yPercent: 100, duration: 0.5, ease: "power3.inOut", delay: 0.05 })
+        .set(leader.current, { visibility: "hidden" });
     }
     const ctx = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
         gsap.from(el, {
           opacity: 0,
-          y: 28,
-          duration: 0.8,
-          ease: "expo.out",
+          x: -18,
+          duration: 0.6,
+          ease: "power3.out",
           scrollTrigger: { trigger: el, start: "top 92%", once: true },
         });
       });
@@ -87,40 +95,46 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     return () => ctx.revert();
   }, [pathname]);
 
-  // pointer life: follower cursor, magnetic elements, press sparks
+  // pointer life: DAW playhead + timecode, magnetic keys, meter-bar bursts on press
   useEffect(() => {
     const fine = matchMedia("(pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dot = document.getElementById("cursor-dot")!;
-    const ring = document.getElementById("cursor-ring")!;
+    const head = document.getElementById("playhead")!;
+    const code = document.getElementById("playhead-code")!;
+    const hx = gsap.quickTo(head, "x", { duration: 0.18, ease: "power3.out" });
+    const cy = gsap.quickTo(code, "y", { duration: 0.25, ease: "power3.out" });
     let mag: HTMLElement | null = null;
-
-    const dx = gsap.quickTo(dot, "x", { duration: 0.08 }), dy = gsap.quickTo(dot, "y", { duration: 0.08 });
-    const rx = gsap.quickTo(ring, "x", { duration: 0.45, ease: "expo.out" }), ry = gsap.quickTo(ring, "y", { duration: 0.45, ease: "expo.out" });
 
     const onMove = (e: PointerEvent) => {
       if (!fine) return;
-      document.documentElement.classList.add("has-cursor");
-      dx(e.clientX); dy(e.clientY); rx(e.clientX); ry(e.clientY);
+      document.documentElement.classList.add("has-playhead");
+      hx(e.clientX);
+      cy(e.clientY - 10);
       const target = e.target as HTMLElement;
-      ring.classList.toggle("is-hot", !!target.closest("a, button, label, input, select, [data-magnetic]"));
+      const hot = !!target.closest("a, button, label, input, select, [data-magnetic]");
+      head.classList.toggle("is-cue", hot);
+      code.textContent = hot ? "CUE" : timecode((scrollY / innerHeight) * 4 + (e.clientX / innerWidth) * 4);
       const m = target.closest<HTMLElement>("[data-magnetic]");
-      if (mag && mag !== m) gsap.to(mag, { x: 0, y: 0, duration: 0.6, ease: "elastic.out(1, 0.4)" });
+      if (mag && mag !== m) gsap.to(mag, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.5)" });
       mag = m;
       if (m) {
         const r = m.getBoundingClientRect();
-        gsap.to(m, { x: (e.clientX - r.left - r.width / 2) * 0.3, y: (e.clientY - r.top - r.height / 2) * 0.3, duration: 0.3 });
+        gsap.to(m, { x: (e.clientX - r.left - r.width / 2) * 0.25, y: (e.clientY - r.top - r.height / 2) * 0.25, duration: 0.25 });
       }
     };
     const onDown = (e: PointerEvent) => {
-      const btn = (e.target as HTMLElement).closest<HTMLElement>(".btn");
-      if (!btn) return;
-      const r = btn.getBoundingClientRect();
-      const s = document.createElement("span");
-      s.className = "spark";
-      s.style.left = `${e.clientX - r.left}px`;
-      s.style.top = `${e.clientY - r.top}px`;
-      s.onanimationend = () => s.remove();
-      btn.appendChild(s);
+      const key = (e.target as HTMLElement).closest<HTMLElement>(".key");
+      if (!key) return;
+      const r = key.getBoundingClientRect();
+      for (let i = 0; i < 9; i++) {
+        const b = document.createElement("span");
+        b.className = "burst";
+        b.style.left = `${e.clientX - r.left}px`;
+        b.style.top = `${e.clientY - r.top}px`;
+        b.style.setProperty("--r", `${i * 40 + Math.random() * 14}deg`);
+        b.style.height = `${8 + Math.random() * 12}px`;
+        b.onanimationend = () => b.remove();
+        key.appendChild(b);
+      }
     };
     addEventListener("pointermove", onMove);
     addEventListener("pointerdown", onDown);
@@ -132,34 +146,30 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-line bg-soot/90">
-        <nav className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-4 sm:gap-6 sm:px-8">
-          <Link href="/" className="mr-auto flex items-center gap-2 font-display text-lg font-bold tracking-tight" aria-label="WaveForge home">
-            <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true">
-              {[3, 8, 15, 6, 12, 4].map((hgt, i) => (
-                <rect key={i} x={i * 4.4} y={9 - hgt / 2} width="2.4" height={hgt} rx="1.2" fill={i % 2 ? "#ffb648" : "#ff5b1f"} />
-              ))}
+      <header className="fixed inset-x-0 top-0 z-40 bg-ink text-cream">
+        <nav className="mx-auto flex h-14 max-w-[90rem] items-center gap-4 px-4 sm:gap-7 sm:px-8">
+          <Link href="/" className="mr-auto flex items-center gap-2.5" aria-label="WaveForge home">
+            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+              <rect x="1" y="1" width="20" height="20" fill="none" stroke="#f4eedc" strokeWidth="2" />
+              <path d="M7 4v14M11 7v8M15 3v16" stroke="#ff3d2e" strokeWidth="2.4" />
             </svg>
-            <span className="hidden min-[400px]:inline">WaveForge</span>
+            <span className="hidden font-title text-2xl font-black uppercase tracking-tight min-[420px]:inline">WaveForge</span>
           </Link>
           {NAV.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className={`font-mono text-[11px] uppercase tracking-[0.16em] transition-colors hover:text-bone ${pathname === n.href ? "text-amber" : "text-ash"}`}
-            >
+            <Link key={n.href} href={n.href} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-cream/70 transition-colors hover:text-cream">
+              <span className={`led ${pathname === n.href ? "led-on" : ""}`} aria-hidden="true" />
               {n.label}
             </Link>
           ))}
-          <Link href="/signup" className="btn-hot hidden !px-4 !py-2 sm:inline-flex" data-magnetic>
-            Start
+          <Link href="/signup" className="key-rec hidden !px-4 !py-1.5 !text-xs sm:inline-flex" style={{ boxShadow: "0 3px 0 0 #000" }} data-magnetic>
+            <span className="h-2 w-2 rounded-full bg-cream" aria-hidden="true" /> Rec
           </Link>
           <a
             href={SITE.repo}
             target="_blank"
             rel="noreferrer"
             aria-label="GitHub repository"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-ash transition-colors hover:border-bone/40 hover:text-bone"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-cream/25 text-cream/60 transition-colors hover:border-cream/60 hover:text-cream"
             data-magnetic
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -167,30 +177,49 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </svg>
           </a>
         </nav>
+        <div className="sprockets h-3 bg-ink" aria-hidden="true" />
       </header>
 
       <main>{children}</main>
 
-      <footer className="relative z-10 border-t border-line py-10">
-        <div className="mx-auto flex max-w-7xl px-4 sm:px-8 flex-wrap items-center justify-between gap-4">
-          <p className="eyebrow">WaveForge · video in, audio out · four services on Kubernetes</p>
-          <a href={SITE.repo} target="_blank" rel="noreferrer" className="eyebrow transition-colors hover:text-bone">
-            Source on GitHub ↗
-          </a>
+      <footer className="relative z-10 bg-ink text-cream">
+        <div className="sprockets h-3" aria-hidden="true" />
+        <div className="mx-auto flex max-w-[90rem] flex-wrap items-end justify-between gap-6 px-4 py-10 sm:px-8">
+          <p className="title text-[clamp(3rem,10vw,8rem)]">End of reel.</p>
+          <div className="space-y-2 pb-2 text-right font-read text-xs text-cream/60">
+            <p>Video in, audio out. Four services on Kubernetes.</p>
+            <a href={SITE.repo} target="_blank" rel="noreferrer" className="text-cream underline-offset-4 hover:underline">
+              Source on GitHub ↗
+            </a>
+          </div>
         </div>
       </footer>
 
-      <div ref={curtain} className="pointer-events-none fixed inset-0 z-[60] flex" style={{ visibility: "hidden" }} aria-hidden="true">
-        {BARS.map((c, i) => (
-          <div key={i} className="bar h-full flex-1" style={{ background: c }} />
-        ))}
-        <p className="curtain-label absolute inset-0 grid place-items-center font-mono text-xs uppercase tracking-[0.3em] text-soot opacity-0">
-          forging…
-        </p>
+      {/* film leader transition */}
+      <div
+        ref={leader}
+        className="pointer-events-none fixed inset-0 z-[60] grid place-items-center overflow-hidden bg-cream text-ink"
+        style={{ visibility: "hidden" }}
+        aria-hidden="true"
+      >
+        <div className="sprockets absolute inset-y-0 left-0 w-6 bg-ink [background-size:12px_16px]" />
+        <div className="sprockets absolute inset-y-0 right-0 w-6 bg-ink [background-size:12px_16px]" />
+        <div className="absolute inset-x-0 top-1/2 h-0.5 bg-ink/70" />
+        <div className="absolute inset-y-0 left-1/2 w-0.5 bg-ink/70" />
+        <div
+          className="relative grid aspect-square w-[min(62vh,80vw)] place-items-center rounded-full border-[6px] border-ink"
+          style={{ background: "conic-gradient(rgba(12,15,42,0.22) var(--a, 0deg), transparent 0)" }}
+        >
+          <div className="absolute inset-[9%] rounded-full border-2 border-ink" />
+          <span className="title relative text-[min(40vh,52vw)] leading-none">{reel}</span>
+        </div>
       </div>
 
-      <div id="cursor-ring" className="pointer-events-none fixed left-0 top-0 z-[70] hidden" aria-hidden="true" />
-      <div id="cursor-dot" className="pointer-events-none fixed left-0 top-0 z-[70] hidden" aria-hidden="true" />
+      <div id="playhead" className="pointer-events-none fixed inset-y-0 left-0 z-[70]" aria-hidden="true">
+        <div className="absolute inset-y-0 left-0 w-px -translate-x-1/2 bg-rec [.is-cue>&]:bg-cream" />
+        <div className="absolute left-0 top-[68px] h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[8px] border-x-transparent border-t-rec" />
+        <span id="playhead-code" className="absolute left-2 top-0 whitespace-nowrap bg-rec px-1.5 py-0.5 font-read text-[10px] text-cream" />
+      </div>
     </>
   );
 }

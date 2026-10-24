@@ -3,10 +3,9 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Split } from '@/components/Motion';
+import { Amp } from '@/components/Motion';
 
-// fixed bar heights for the progress waveform (decorative)
-const BARS = Array.from({ length: 56 }, (_, i) => 0.25 + 0.75 * Math.abs(Math.sin(i * 0.9) * Math.sin(i * 0.23 + 1)));
+const SEGMENTS = 40;
 
 const DashboardPage = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -123,87 +122,82 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="relative z-10 mx-auto grid min-h-screen max-w-6xl gap-10 px-4 pb-24 pt-32 sm:px-8 lg:grid-cols-[1fr_1.1fr] lg:items-start">
-      <div className="lg:sticky lg:top-32">
-        <p className="eyebrow mb-5" data-reveal>Intake</p>
-        <Split text="Drop in a video." className="font-display text-5xl font-extrabold leading-[0.95] tracking-[-0.03em] sm:text-7xl" />
-        <p className="mt-5 max-w-sm text-bone/70" data-reveal>
+    <div className="relative z-10 mx-auto grid min-h-screen max-w-[90rem] gap-10 px-4 pb-24 pt-28 sm:px-8 lg:grid-cols-[1fr_1.15fr] lg:items-start">
+      <div className="lg:sticky lg:top-28">
+        <Amp text="Feed the gate." className="title text-[clamp(3.6rem,9vw,8.5rem)]" />
+        <p className="mt-5 max-w-sm text-cream/85" data-reveal>
           It goes to GridFS, joins the file_uploaded queue, and you&apos;ll get an email when the audio is ready.
         </p>
       </div>
 
-      <div className="panel p-5 sm:p-8" data-reveal>
-        {/* the input covers the whole zone, so native drag-and-drop works */}
+      <div className="plate p-5 sm:p-7" data-reveal>
+        {/* the input covers the whole gate, so native drag-and-drop works */}
         <label
-          className={`relative block cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors ${dragging ? 'border-amber bg-amber/5' : 'border-line hover:border-bone/30'}`}
+          className={`relative block cursor-pointer border-2 border-ink text-center text-cream transition-colors ${dragging ? 'bg-rec' : 'bg-ink hover:bg-[#151a45]'}`}
           onDragEnter={() => setDragging(true)}
           onDragLeave={() => setDragging(false)}
         >
+          <div className="sprockets h-3" aria-hidden="true" />
           <input
             type="file"
             onChange={handleFileChange}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             aria-label="Choose a video file"
           />
-          <svg className="mx-auto mb-4" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffb648" strokeWidth="1.5" aria-hidden="true">
-            <path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <p className="font-display text-lg font-semibold">Drag and drop or <span className="text-amber underline-offset-4 hover:underline">browse</span> your files.</p>
-          <p className="mt-1 font-mono text-xs text-ash">MP4 works best</p>
+          <div className="px-6 py-10">
+            <p className="title text-4xl">{dragging ? 'Let go.' : 'Drop a video here'}</p>
+            <p className="mt-2 text-sm text-cream/75">Drag and drop or <span className="font-bold underline underline-offset-4">browse</span> your files. MP4 works best.</p>
+          </div>
+          <div className="sprockets h-3" aria-hidden="true" />
         </label>
 
         {file && (
           <div className="mt-6">
             <div className="flex items-baseline justify-between gap-4">
-              <p className="truncate font-semibold">{file.name}</p>
-              <p className="shrink-0 font-mono text-xs text-ash">{`${(file.size / (1024 * 1024)).toFixed(2)} MB`}</p>
+              <p className="truncate font-bold">{file.name}</p>
+              <p className="shrink-0 font-read text-xs text-ink/60">{`${(file.size / (1024 * 1024)).toFixed(2)} MB`}</p>
             </div>
-            {/* upload progress drawn as a waveform that heats up left to right */}
+            {/* upload progress as a segmented level meter */}
             <div
-              className="mt-3 flex h-12 items-center gap-[3px]"
+              className="mt-3 flex h-6 gap-[3px] border-2 border-ink bg-ink p-1"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={progress}
               aria-label="Upload progress"
             >
-              {BARS.map((b, i) => {
-                const lit = (i / BARS.length) * 100 < progress;
-                return (
-                  <span
-                    key={i}
-                    className="flex-1 rounded-full transition-colors duration-300"
-                    style={{ height: `${b * 100}%`, background: lit ? (i % 3 ? '#ff5b1f' : '#ffb648') : 'rgba(239,230,216,0.12)' }}
-                  />
-                );
+              {Array.from({ length: SEGMENTS }, (_, i) => {
+                const lit = (i / SEGMENTS) * 100 < progress;
+                return <span key={i} className={`flex-1 transition-colors duration-150 ${lit ? (i > SEGMENTS * 0.85 ? 'bg-cream' : 'bg-rec') : 'bg-cream/10'}`} />;
               })}
             </div>
-            {isLoading && <p className="mt-2 font-mono text-xs text-amber">Uploading... {progress}%</p>}
+            {isLoading && <p className="mt-2 font-read text-xs text-rec">Uploading... {progress}%</p>}
           </div>
         )}
 
         <fieldset className="mt-8">
-          <legend className="label">File Type</legend>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          <legend className="tag">File Type</legend>
+          <div className="mt-3 grid grid-cols-2 gap-3">
             {['mp3', 'wav'].map((t) => (
               <label
                 key={t}
-                className={`cursor-pointer rounded-lg border px-4 py-3 text-center font-mono text-sm uppercase transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-amber ${fileType === t ? 'border-ember bg-ember/10 text-bone' : 'border-line text-ash hover:border-bone/30'}`}
+                className={`key cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-4 has-[:focus-visible]:outline-ink ${fileType === t ? 'translate-y-[5px] bg-ink text-cream !shadow-none' : 'bg-white text-ink'}`}
               >
                 <input type="radio" name="filetype" value={t} checked={fileType === t} onChange={(e) => setFileType(e.target.value)} className="sr-only" />
+                <span className={`led ${fileType === t ? 'led-on' : '!bg-ink/20'}`} aria-hidden="true" />
                 {t}
               </label>
             ))}
           </div>
         </fieldset>
 
-        <div className="mt-6">
-          <label htmlFor="samplingrate" className="label">Sampling Rate</label>
+        <div className="mt-7">
+          <label htmlFor="samplingrate" className="tag">Sampling Rate</label>
           <select
             id="samplingrate"
             value={isCustom ? 'custom' : samplingRate}
             onChange={handleSamplingRateChange}
-            className="field cursor-pointer"
+            className="slot cursor-pointer !bg-ink !text-cream"
           >
             <option value="22400">22400 Hz</option>
             <option value="48000">48000 Hz</option>
@@ -217,22 +211,23 @@ const DashboardPage = () => {
               onChange={handleCustomSamplingRateChange}
               placeholder="Enter custom sampling rate"
               aria-label="Custom sampling rate in Hz"
-              className="field"
+              className="slot"
             />
           )}
         </div>
 
-        <button onClick={handleFileUpload} disabled={isLoading} className="btn-hot mt-8 w-full" data-magnetic>
+        <button onClick={handleFileUpload} disabled={isLoading} className="key-rec mt-8 w-full" data-magnetic>
+          <span className="h-2.5 w-2.5 rounded-full bg-cream" aria-hidden="true" />
           {isLoading ? 'Uploading...' : 'Upload'}
         </button>
-        {error && <p role="alert" className="mt-4 font-mono text-xs text-ember">{error}</p>}
+        {error && <p role="alert" className="mt-4 font-read text-xs font-medium text-rec">{error}</p>}
 
         {objectId && (
-          <div className="mt-6 rounded-xl border border-amber/30 bg-amber/5 p-5">
-            <p className="font-mono text-xs text-amber">File Successfully Uploaded with the ObjectID: <span className="break-all text-bone">{objectId}</span></p>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button onClick={handleReupload} className="btn-cold">Reupload</button>
-              <button onClick={handleDone} className="btn-hot">Done</button>
+          <div className="mt-6 border-2 border-ink bg-white p-5">
+            <p className="font-read text-xs">File Successfully Uploaded with the ObjectID: <span className="break-all font-medium text-rec">{objectId}</span></p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button onClick={handleReupload} className="key-cream">Reupload</button>
+              <button onClick={handleDone} className="key-rec">Done</button>
             </div>
           </div>
         )}
