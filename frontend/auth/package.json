@@ -11,15 +11,19 @@
   "dependencies": {
     "@clerk/nextjs": "^5.0.8",
     "axios": "^1.7.2",
+    "gsap": "3.12.5",
+    "lenis": "1.1.13",
     "next": "14.2.3",
     "next-auth": "^4.24.7",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "three": "0.169.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/three": "0.169.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "postcss": "^8",

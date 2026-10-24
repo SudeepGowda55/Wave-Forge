@@ -8,10 +8,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      colors: {
+        soot: "#0d0b09",
+        coal: "#17130f",
+        ember: "#ff5b1f",
+        amber: "#ffb648",
+        molten: "#fff1dc",
+        steel: "#8193a6",
+        bone: "#efe6d8",
+        ash: "#a3998b",
+        line: "rgba(239,230,216,0.12)",
+      },
+      fontFamily: {
+        display: ["var(--font-display)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
     },
   },
