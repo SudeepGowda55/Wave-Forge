@@ -1,6 +1,7 @@
 "use client"
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Amp } from '@/components/Motion';
@@ -14,8 +15,8 @@ const SignupPage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const [jwtToken, setJwtToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -41,24 +42,22 @@ const SignupPage: React.FC = () => {
           firstname: firstName,
           username: username,
           usermail: email,
+          password,
         }),
       });
-      console.log('Signup response status:', response.status);
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error('Failed to signup');
+        // 409 = email already registered; the gateway relays the auth service's message
+        throw new Error(typeof data === 'string' ? data : 'Failed to signup');
       }
 
-      const data = await response.json();
-      console.log('Signup response data:', data);
-      setJwtToken(data.token);
-
-      localStorage.setItem('username', firstName);
+      localStorage.setItem('username', data.firstname);
       localStorage.setItem('usermail', email);
-      localStorage.setItem('token', data);
+      localStorage.setItem('token', data.token);
       router.push('/dashboard');
     } catch (error) {
       console.error('Signup error:', error);
-      setError('Signup failed. Check your details and try again.');
+      setError(error instanceof Error ? error.message : 'Signup failed. Check your details and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +67,7 @@ const SignupPage: React.FC = () => {
     { id: 'firstName', label: 'First name', type: 'text', value: firstName, set: setFirstName, auto: 'given-name' },
     { id: 'username', label: 'Username', type: 'text', value: username, set: setUsername, auto: 'username' },
     { id: 'email', label: 'Email', type: 'email', value: email, set: setEmail, auto: 'email' },
+    { id: 'password', label: 'Password (8+ characters)', type: 'password', value: password, set: setPassword, auto: 'new-password' },
   ];
 
   return (
@@ -87,6 +87,7 @@ const SignupPage: React.FC = () => {
                 value={f.value}
                 onChange={(e) => f.set(e.target.value)}
                 autoComplete={f.auto}
+                minLength={f.type === 'password' ? 8 : undefined}
                 required
               />
             </div>
@@ -96,8 +97,8 @@ const SignupPage: React.FC = () => {
             {isLoading ? 'Signing up…' : 'Sign up'}
           </button>
           {error && <p role="alert" className="font-read text-xs font-medium text-rec">{error}</p>}
+          <p className="font-read text-xs text-cream/70">Already have an account? <Link href="/signin" className="font-bold text-cream underline underline-offset-4">Sign in</Link></p>
         </form>
-        {jwtToken && <p className="mt-4 break-all font-read text-xs text-cream/70">JWT Token: {jwtToken}</p>}
       </div>
       <div className="relative hidden overflow-hidden border-l-2 border-ink lg:block">
         <Film mode="auto" className="absolute inset-0" />

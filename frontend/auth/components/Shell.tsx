@@ -16,7 +16,7 @@ const NAV = [
   { href: "/upload", label: "Upload" },
 ];
 // leader countdown number per destination reel
-const REEL: Record<string, number> = { "/": 1, "/pipeline": 2, "/upload": 3, "/dashboard": 4, "/signup": 5 };
+const REEL: Record<string, number> = { "/": 1, "/pipeline": 2, "/upload": 3, "/dashboard": 4, "/signup": 5, "/signin": 6 };
 
 const timecode = (sec: number) => {
   const f = Math.floor((sec % 1) * 24);
@@ -28,6 +28,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const leader = useRef<HTMLDivElement>(null);
+  const [signedIn, setSignedIn] = useState(false);
+  // localStorage is only available in the browser; re-check on every navigation
+  useEffect(() => { setSignedIn(!!localStorage.getItem('token')); }, [pathname]);
+  const signOut = () => { localStorage.clear(); setSignedIn(false); router.push('/'); };
   const covered = useRef(false);
   const lenis = useRef<Lenis | null>(null);
   const [reel, setReel] = useState(1);
@@ -161,9 +165,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               {n.label}
             </Link>
           ))}
-          <Link href="/signup" className="key-rec hidden !px-4 !py-1.5 !text-xs sm:inline-flex" style={{ boxShadow: "0 3px 0 0 #000" }} data-magnetic>
-            <span className="h-2 w-2 rounded-full bg-cream" aria-hidden="true" /> Rec
-          </Link>
+          {signedIn ? (
+            <button type="button" onClick={signOut} className="key-rec hidden !px-4 !py-1.5 !text-xs sm:inline-flex" style={{ boxShadow: "0 3px 0 0 #000" }} data-magnetic>
+              <span className="h-2 w-2 rounded-full bg-cream" aria-hidden="true" /> Sign out
+            </button>
+          ) : (
+            <Link href="/signin" className="key-rec hidden !px-4 !py-1.5 !text-xs sm:inline-flex" style={{ boxShadow: "0 3px 0 0 #000" }} data-magnetic>
+              <span className="h-2 w-2 rounded-full bg-cream" aria-hidden="true" /> Sign in
+            </Link>
+          )}
           <a
             href={SITE.repo}
             target="_blank"

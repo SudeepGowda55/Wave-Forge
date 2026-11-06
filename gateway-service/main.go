@@ -39,7 +39,8 @@ func main() {
 	router.Use(corsMiddleware())
 
 	router.GET("/health", func(c *gin.Context) { c.Status(200) })
-	router.POST("/signup", auth.Signup)
+	router.POST("/signup", auth.Forward("/signup"))
+	router.POST("/login", auth.Forward("/login"))
 	router.POST("/upload", auth.RequireAuth(), db.UploadFile)
 	router.POST("/getfiles", auth.RequireAuth(), db.GetFiles)
 

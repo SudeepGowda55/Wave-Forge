@@ -68,12 +68,12 @@ const DashboardPage = () => {
     }
     if (!usermail) {
       console.error('No user email found');
-      setError('No account found on this device. Sign up first.');
+      setError('You are not signed in.');
       return;
     }
     if (!firstname) {
       console.error('No firstname found');
-      setError('No account found on this device. Sign up first.');
+      setError('You are not signed in.');
       return;
     }
     setIsLoading(true);
@@ -108,7 +108,7 @@ const DashboardPage = () => {
       console.error('Error uploading file:', error);
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         localStorage.clear();
-        setError('Your session expired. Sign up again.');
+        setError('Your session expired. Sign in again.');
         return;
       }
       setError('Upload failed. Try again.');

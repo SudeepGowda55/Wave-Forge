@@ -10,12 +10,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func createJWT(userData types.UserSignup) string {
+func createJWT(usermail string) string {
 
 	payload := types.JWTPayload{
-		CustomClaims: userData.UserMail,
+		CustomClaims: usermail,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 30)),
@@ -35,8 +36,6 @@ func createJWT(userData types.UserSignup) string {
 	}
 }
 
-// Signup doubles as login: there is no password, so signing up again with the same
-// email just refreshes the name and hands back a new token.
 func Signup(contextProvider *gin.Context) {
 	var userdata = types.UserSignup{}
 
@@ -45,20 +44,52 @@ func Signup(contextProvider *gin.Context) {
 		return
 	}
 
-	if userdata.UserMail == "" || userdata.FirstName == "" {
-		contextProvider.IndentedJSON(http.StatusBadRequest, "usermail and firstname are required")
+	if userdata.UserMail == "" || userdata.FirstName == "" || len(userdata.Password) < 8 {
+		contextProvider.IndentedJSON(http.StatusBadRequest, "usermail, firstname and a password of at least 8 characters are required")
 		return
 	}
 
-	_, err := database.Db.Exec("INSERT INTO users (firstname, username, usermail) VALUES ($1, $2, $3) ON CONFLICT (usermail) DO UPDATE SET firstname = EXCLUDED.firstname, username = EXCLUDED.username", userdata.FirstName, userdata.UserName, userdata.UserMail)
+	hash, err := bcrypt.GenerateFromPassword([]byte(userdata.Password), bcrypt.DefaultCost)
 
 	if err != nil {
 		contextProvider.IndentedJSON(http.StatusInternalServerError, err.Error())
 		return
-	} else {
-		jwtToken := createJWT(userdata)
-		contextProvider.IndentedJSON(http.StatusCreated, jwtToken)
 	}
+
+	res, err := database.Db.Exec("INSERT INTO users (firstname, username, usermail, password_hash) VALUES ($1, $2, $3, $4) ON CONFLICT (usermail) DO NOTHING", userdata.FirstName, userdata.UserName, userdata.UserMail, string(hash))
+
+	if err != nil {
+		contextProvider.IndentedJSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if n, _ := res.RowsAffected(); n == 0 {
+		contextProvider.IndentedJSON(http.StatusConflict, "An account with this email already exists. Sign in instead.")
+		return
+	}
+
+	contextProvider.IndentedJSON(http.StatusCreated, gin.H{"token": createJWT(userdata.UserMail), "firstname": userdata.FirstName})
+}
+
+func Login(contextProvider *gin.Context) {
+	var userdata = types.UserSignup{}
+
+	if err := contextProvider.BindJSON(&userdata); err != nil {
+		contextProvider.IndentedJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var firstName, hash string
+
+	err := database.Db.QueryRow("SELECT firstname, COALESCE(password_hash, '') FROM users WHERE usermail = $1", userdata.UserMail).Scan(&firstName, &hash)
+
+	// same answer for unknown email and wrong password, so emails can't be probed
+	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(userdata.Password)) != nil {
+		contextProvider.IndentedJSON(http.StatusUnauthorized, "Wrong email or password")
+		return
+	}
+
+	contextProvider.IndentedJSON(http.StatusOK, gin.H{"token": createJWT(userdata.UserMail), "firstname": firstName})
 }
 
 func ValidateJWT(contextProvider *gin.Context) {

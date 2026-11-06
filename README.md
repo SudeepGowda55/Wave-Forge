@@ -37,7 +37,7 @@ npm install && npm run dev
 Try the API directly:
 
 ```sh
-TOKEN=$(curl -s -X POST localhost/signup -H 'Content-Type: application/json' -d '{"usermail":"you@example.com","firstname":"You","username":"you"}' | tr -d '"')
+TOKEN=$(curl -s -X POST localhost/signup -H 'Content-Type: application/json' -d '{"usermail":"you@example.com","firstname":"You","username":"you","password":"at-least-8-chars"}' | jq -r .token)
 curl -X POST localhost/upload -H "Authorization: Bearer $TOKEN" -F sourcefile=@video.mp4 -F destaudioformat=mp3 -F samplingrate=n/a -F firstname=You
 curl -X POST localhost/getfiles -H "Authorization: Bearer $TOKEN"
 ```
@@ -60,7 +60,7 @@ Point an `A` record for `API_DOMAIN` at the VM; Caddy obtains the HTTPS certific
 
 ## Notes
 
-- Signup is email-only (no password) and doubles as login: signing up again with the same email returns a fresh token.
+- Passwords are bcrypt-hashed; `POST /signup` and `POST /login` both return `{"token", "firstname"}` and the token is sent as `Authorization: Bearer <token>`.
 - Failed conversions are recorded as `conversion failed` on the file and the message is acknowledged, so one bad file never blocks the queue.
 - `*/manifests` and `ingress.yaml` are the original Kubernetes manifests; Docker Compose is the maintained deployment path.
 

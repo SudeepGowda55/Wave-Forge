@@ -67,7 +67,7 @@ const FilesPage: React.FC = () => {
       console.error('Error fetching files:', error);
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         localStorage.clear();
-        setError('Your session expired. Sign up again.');
+        setError('Your session expired. Sign in again.');
         return;
       }
       setError('Could not fetch files. Is the gateway up?');

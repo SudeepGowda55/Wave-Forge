@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,56 +9,32 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-
-	"Audio_Conversion-Microservice/gateway-service/types"
 )
 
-func Signup(contextProvider *gin.Context) {
-	var signupData types.UserSignupData
+// Forward passes a JSON request straight to the same path on the authentication
+// service and relays its status and body (used for /signup and /login).
+func Forward(path string) gin.HandlerFunc {
+	return func(contextProvider *gin.Context) {
+		authenticationServiceUrl := fmt.Sprint(os.Getenv("AUTHENTICATION_SERVICE_URL"), path)
 
-	if err := contextProvider.BindJSON(&signupData); err != nil {
-		contextProvider.JSON(400, err.Error())
-		return
+		resp, err := http.Post(authenticationServiceUrl, "application/json", contextProvider.Request.Body)
+
+		if err != nil {
+			contextProvider.JSON(500, err.Error())
+			return
+		}
+
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+
+		if err != nil {
+			contextProvider.JSON(500, err.Error())
+			return
+		}
+
+		contextProvider.Data(resp.StatusCode, "application/json", body)
 	}
-
-	jsonData, err := json.Marshal(signupData)
-
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
-		return
-	}
-
-	buffer := new(bytes.Buffer)
-
-	_, _ = buffer.Write(jsonData)
-
-	authenticationServiceUrl := fmt.Sprint(os.Getenv("AUTHENTICATION_SERVICE_URL"), "/signup")
-
-	resp, err := http.Post(authenticationServiceUrl, "application/json", buffer)
-
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
-		return
-	}
-
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
-		return
-	}
-
-	if resp.StatusCode != 201 {
-		contextProvider.JSON(resp.StatusCode, string(body))
-		return
-	}
-
-	token := string(body)
-	jwtToken := strings.ReplaceAll(token, "\"", "")
-
-	contextProvider.JSON(200, jwtToken)
 }
 
 // RequireAuth checks the "Authorization: Bearer <jwt>" header with the authentication

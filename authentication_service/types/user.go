@@ -6,6 +6,7 @@ type UserSignup struct {
 	FirstName string `json:"firstname"`
 	UserName  string `json:"username"`
 	UserMail  string `json:"usermail"`
+	Password  string `json:"password"`
 }
 
 type JWTPayload struct {
