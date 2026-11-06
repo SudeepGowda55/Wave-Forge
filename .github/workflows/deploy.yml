@@ -54,7 +54,6 @@ jobs:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           HOST: ${{ secrets.DEPLOY_HOST }}
-          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -z "$HOST" ]; then
             echo "::notice::DEPLOY_HOST / DEPLOY_SSH_KEY / DEPLOY_KNOWN_HOSTS not set: images pushed, auto-deploy skipped"
@@ -63,15 +62,13 @@ jobs:
           install -m 700 -d ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
           echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          # the token goes over stdin so it never appears in a process list or log
-          echo "$REGISTRY_TOKEN" | ssh -i ~/.ssh/deploy_key "ubuntu@$HOST" '
+          # images are public (they inherit the repo's visibility), so the server pulls without logging in
+          ssh -i ~/.ssh/deploy_key "ubuntu@$HOST" '
             set -e
             cd ~/Wave-Forge
             git pull -q
-            docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull -q
             docker compose up -d --remove-orphans
-            docker logout ghcr.io
             docker image prune -f
             docker compose ps --format "{{.Service}} {{.Status}}"
           '
