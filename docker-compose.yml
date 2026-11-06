@@ -1,0 +1,43 @@
+# Backend. Copy each service's .env.example to .env and fill it in, then: docker compose up -d --build
+# Postgres (Neon), MongoDB (Atlas), RabbitMQ (CloudAMQP), Cloudinary and Mailgun are external services.
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      # plain http://localhost locally; set a real domain in production and Caddy adds HTTPS
+      API_DOMAIN: ${API_DOMAIN:-http://localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on: [gateway]
+
+  gateway:
+    build: ./gateway-service
+    restart: unless-stopped
+    env_file: ./gateway-service/.env
+    environment:
+      AUTHENTICATION_SERVICE_URL: http://auth:8001
+    depends_on: [auth]
+
+  auth:
+    build: ./authentication_service
+    restart: unless-stopped
+    env_file: ./authentication_service/.env
+
+  converter:
+    build: ./converter-service
+    restart: unless-stopped
+    env_file: ./converter-service/.env
+    environment:
+      UPDATE_FILE_URL: http://auth:8001/updatefileurl
+    depends_on: [auth]
+
+  notifier:
+    build: ./notification_service
+    restart: unless-stopped
+    env_file: ./notification_service/.env
+
+volumes:
+  caddy_data:

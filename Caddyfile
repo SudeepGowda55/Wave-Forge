@@ -1,0 +1,7 @@
+# Public HTTPS entry point; Caddy fetches the certificate itself once API_DOMAIN points at this server.
+{$API_DOMAIN} {
+	request_body {
+		max_size 500MB
+	}
+	reverse_proxy gateway:8000
+}
