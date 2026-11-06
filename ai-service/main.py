@@ -4,13 +4,15 @@ import dotenv, pika, requests
 
 dotenv.load_dotenv()
 
-import ask, db, dub, llm, transcribe, voice  # noqa: E402  (after .env is loaded)
+import ask, db, dub, insights, llm, transcribe, voice  # noqa: E402  (after .env is loaded)
 
 AUTH = os.environ.get("AUTH_SERVICE_URL", "http://localhost:8001")
 TRANSCRIBE_PER_DAY = int(os.environ.get("TRANSCRIBE_PER_DAY", "10"))
 ASK_PER_DAY = int(os.environ.get("ASK_PER_DAY", "30"))
 VOICE_PER_DAY = int(os.environ.get("VOICE_PER_DAY", "5"))
 DUB_PER_DAY = int(os.environ.get("DUB_PER_DAY", "2"))
+# showcase account whose processed files are public at GET /demo
+DEMO_USERMAIL = os.environ.get("DEMO_USERMAIL", "")
 
 
 def set_status(fileid, status):
@@ -27,6 +29,12 @@ def on_converted(ch, method, properties, body):
         set_status(fileid, "transcribing")
         count = transcribe.transcribe(fileid, usermail, data["fileurl"])
         db.record_usage(usermail, "transcribe")
+        if count:
+            try:
+                insights.generate(usermail, fileid)
+            except Exception as e:
+                # a missing summary must not cost the user their transcript
+                print(f"Insights failed for {fileid}: {e}")
         # "done" = audio + transcript; "converted" = audio only (no speech, quota hit or error)
         set_status(fileid, "done" if count else "converted")
         print(f"Transcribed {fileid}: {count} segments")
@@ -69,6 +77,28 @@ def publish(queue, payload):
         connection.close()
 
 
+def demo():
+    """Everything already generated for the showcase account; read-only, so visitors spend no quota."""
+    if not DEMO_USERMAIL:
+        return []
+    with db.connect() as conn:
+        files = conn.execute(
+            "SELECT fileid, filename, fileurl FROM userfiles WHERE usermail = %s AND status = 'done' ORDER BY created_at", (DEMO_USERMAIL,)
+        ).fetchall()
+    return [
+        {
+            "fileid": fileid,
+            "filename": filename,
+            "fileurl": fileurl,
+            **insights.get(DEMO_USERMAIL, fileid),
+            "transcript": [{"start": s, "text": t} for s, _, t in ask.file_transcript(DEMO_USERMAIL, fileid)],
+            "clips": voice.clips(DEMO_USERMAIL, fileid),
+            "dubs": [d for d in dub.dubs(DEMO_USERMAIL, fileid) if d["status"] == "done"],
+        }
+        for fileid, filename, fileurl in files
+    ]
+
+
 class Handler(BaseHTTPRequestHandler):
     # only reachable inside the Docker network; the gateway checks the JWT and sets usermail
     def reply(self, status, payload):
@@ -88,6 +118,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health":
             return self.reply(200, "ok")
+        if self.path == "/ai/demo":
+            return self.reply(200, demo())
         usermail = self.user()
         if not usermail:
             return
@@ -99,6 +131,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(200, voice.clips(usermail, fileid))
         if self.path.startswith("/ai/dub/"):
             return self.reply(200, dub.dubs(usermail, fileid))
+        if self.path.startswith("/ai/insights/"):
+            return self.reply(200, insights.get(usermail, fileid))
         self.reply(404, "not found")
 
     def do_POST(self):

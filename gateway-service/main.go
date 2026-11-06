@@ -51,6 +51,12 @@ func main() {
 	// /ai/* goes to the internal AI service with the caller's email taken from the verified token
 	aiURL, _ := url.Parse(os.Getenv("AI_SERVICE_URL"))
 	aiProxy := httputil.NewSingleHostReverseProxy(aiURL)
+	// public showcase: no token, and the AI service picks the demo account itself
+	router.GET("/demo", func(c *gin.Context) {
+		c.Request.URL.Path = "/ai/demo"
+		c.Request.Header.Del("usermail")
+		aiProxy.ServeHTTP(c.Writer, c.Request)
+	})
 	router.Any("/ai/*path", auth.RequireAuth(), func(c *gin.Context) {
 		c.Request.Header.Del("Authorization")
 		c.Request.Header.Set("usermail", c.GetString("usermail"))

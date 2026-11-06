@@ -200,6 +200,7 @@ export default function Home() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/signup" className="key-rec" data-magnetic>Create account</Link>
                 <Link href="/upload" className="key-cream" data-magnetic>Upload a video</Link>
+                <Link href="/demo" className="key-cream" data-magnetic>See the demo</Link>
               </div>
             </div>
           </div>

@@ -29,6 +29,15 @@ CREATE TABLE IF NOT EXISTS transcript_segments (
 CREATE INDEX IF NOT EXISTS transcript_segments_tsv ON transcript_segments USING gin (tsv);
 CREATE INDEX IF NOT EXISTS transcript_segments_file ON transcript_segments (fileid, start_s);
 
+-- owned by ai-service: AI summary and chapter list per transcribed file
+CREATE TABLE IF NOT EXISTS file_insights (
+    fileid     text PRIMARY KEY,
+    usermail   text,
+    summary    text,
+    chapters   jsonb,
+    created_at timestamptz DEFAULT now()
+);
+
 -- owned by ai-service: cloned-voice clips, made only with the user's consent
 CREATE TABLE IF NOT EXISTS voice_clips (
     usermail   text,

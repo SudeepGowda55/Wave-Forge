@@ -4,7 +4,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Amp } from '@/components/Motion';
-import { SITE } from '@/lib/site';
+import { DUB_LANGS, SITE } from '@/lib/site';
 
 interface FileData {
   fileid: string;
@@ -18,12 +18,9 @@ interface FileData {
 interface Segment { start: number; end: number; text: string }
 interface Source { fileid: string; filename: string; start: number; text: string }
 interface Clip { text: string; url: string }
+interface Insights { summary: string | null; chapters: { start: number; title: string }[] }
 interface Dub { id: number; language: string; status: string; url: string | null; error: string | null }
 
-const DUB_LANGS: [string, string][] = [
-  ['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['ja', 'Japanese'],
-  ['zh', 'Chinese'], ['en', 'English'], ['hi', 'Hindi (beta)'], ['kn', 'Kannada (beta)'],
-];
 const DUB_LABEL: Record<string, string> = {
   queued: 'In the queue', translating: 'Translating', voicing: 'Recording the voice', mixing: 'Mixing onto the video', done: 'Ready', failed: 'Failed',
 };
@@ -86,6 +83,7 @@ const FilesPage: React.FC = () => {
   const [error, setError] = useState('');
   const [open, setOpen] = useState<string | null>(null);
   const [transcripts, setTranscripts] = useState<Record<string, Segment[]>>({});
+  const [insights, setInsights] = useState<Record<string, Insights>>({});
   const [question, setQuestion] = useState('');
   const [scope, setScope] = useState<string>('');
   const [asking, setAsking] = useState(false);
@@ -151,6 +149,11 @@ const FilesPage: React.FC = () => {
     setVoiceError('');
     setDubError('');
     if (next) loadDubs(next);
+    if (next && !insights[next]) {
+      axios.get(`${SITE.api}/ai/insights/${next}`, { headers: auth() })
+        .then((r) => setInsights((i) => ({ ...i, [next]: r.data })))
+        .catch(() => {});
+    }
     if (next && !clips[next]) {
       axios.get(`${SITE.api}/ai/voice/${next}`, { headers: auth() })
         .then((r) => setClips((c) => ({ ...c, [next]: r.data })))
@@ -337,6 +340,27 @@ const FilesPage: React.FC = () => {
                     </a>
                     {file.status === 'done' && (
                       <div className="mt-4">
+                        {insights[file.fileid]?.summary && (
+                          <div className="mb-5">
+                            <p className="tag">Summary · AI generated</p>
+                            <p className="mt-1 text-[15px] leading-relaxed">{insights[file.fileid].summary}</p>
+                            {insights[file.fileid].chapters.length > 1 && (
+                              <ul className="mt-3 flex flex-wrap gap-2" aria-label="Chapters">
+                                {insights[file.fileid].chapters.map((c) => (
+                                  <li key={c.start}>
+                                    <button
+                                      type="button"
+                                      onClick={() => seek(file.fileid, c.start)}
+                                      className="border-2 border-ink px-2 py-1 text-left text-xs transition-colors hover:bg-ink hover:text-cream"
+                                    >
+                                      <span className="font-read font-medium text-rec">{mmss(c.start)}</span> {c.title}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        )}
                         <p className="tag">Transcript · AI generated</p>
                         {!segments && <p className="mt-2 font-read text-xs text-ink/60">Loading transcript…</p>}
                         {segments && segments.length === 0 && <p className="mt-2 font-read text-xs text-ink/60">No transcript stored for this file.</p>}
