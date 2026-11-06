@@ -18,6 +18,15 @@ interface FileData {
 interface Segment { start: number; end: number; text: string }
 interface Source { fileid: string; filename: string; start: number; text: string }
 interface Clip { text: string; url: string }
+interface Dub { id: number; language: string; status: string; url: string | null; error: string | null }
+
+const DUB_LANGS: [string, string][] = [
+  ['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['ja', 'Japanese'],
+  ['zh', 'Chinese'], ['en', 'English'], ['hi', 'Hindi (beta)'], ['kn', 'Kannada (beta)'],
+];
+const DUB_LABEL: Record<string, string> = {
+  queued: 'In the queue', translating: 'Translating', voicing: 'Recording the voice', mixing: 'Mixing onto the video', done: 'Ready', failed: 'Failed',
+};
 
 const PENDING = ['queued', 'converting', 'converted', 'transcribing'];
 // how far along the signal path each status is: upload, convert, transcribe, ready
@@ -86,6 +95,10 @@ const FilesPage: React.FC = () => {
   const [consent, setConsent] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState('');
+  const [dubs, setDubs] = useState<Record<string, Dub[]>>({});
+  const [dubLang, setDubLang] = useState('es');
+  const [dubConsent, setDubConsent] = useState(false);
+  const [dubError, setDubError] = useState('');
   const audios = useRef<Record<string, HTMLAudioElement | null>>({});
   const pendingSeek = useRef<{ fileid: string; t: number } | null>(null);
   const pollUntil = useRef(0);
@@ -95,6 +108,19 @@ const FilesPage: React.FC = () => {
     setSignedIn(false);
     setError('Your session expired. Sign in again.');
   };
+
+  const loadDubs = useCallback((fileid: string) => {
+    axios.get(`${SITE.api}/ai/dub/${fileid}`, { headers: auth() })
+      .then((r) => setDubs((d) => ({ ...d, [fileid]: r.data })))
+      .catch(() => {});
+  }, []);
+
+  // poll the open file's dubs while any of them is still being made
+  useEffect(() => {
+    if (!open || !(dubs[open] ?? []).some((d) => d.status !== 'done' && d.status !== 'failed')) return;
+    const id = setTimeout(() => loadDubs(open), 3000);
+    return () => clearTimeout(id);
+  }, [open, dubs, loadDubs]);
 
   const loadFiles = useCallback(async () => {
     try {
@@ -123,6 +149,8 @@ const FilesPage: React.FC = () => {
     const next = open === fileid ? null : fileid;
     setOpen(next);
     setVoiceError('');
+    setDubError('');
+    if (next) loadDubs(next);
     if (next && !clips[next]) {
       axios.get(`${SITE.api}/ai/voice/${next}`, { headers: auth() })
         .then((r) => setClips((c) => ({ ...c, [next]: r.data })))
@@ -189,6 +217,17 @@ const FilesPage: React.FC = () => {
       setVoiceError(axios.isAxiosError(error) && typeof error.response?.data === 'string' ? error.response.data : 'Could not make the clip. Try again.');
     } finally {
       setSpeaking(false);
+    }
+  };
+
+  const startDub = async (fileid: string) => {
+    setDubError('');
+    try {
+      const r = await axios.post(`${SITE.api}/ai/dub`, { fileid, language: dubLang, consent: dubConsent }, { headers: auth() });
+      setDubs((d) => ({ ...d, [fileid]: [r.data, ...(d[fileid] ?? []).filter((x) => x.id !== r.data.id)] }));
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) return sessionExpired();
+      setDubError(axios.isAxiosError(error) && typeof error.response?.data === 'string' ? error.response.data : 'Could not start the dub. Try again.');
     }
   };
 
@@ -348,6 +387,51 @@ const FilesPage: React.FC = () => {
                               <p className="mt-1 font-read text-[11px] uppercase text-ink/50">AI-generated voice</p>
                             </div>
                           ))}
+                        </div>
+
+                        <div className="mt-6 border-t-2 border-ink/15 pt-4">
+                          <p className="tag">Dub into another language · AI voice, machine translated</p>
+                          <p className="mt-1 text-sm text-ink/70">The first 3 minutes, translated and spoken in this speaker&apos;s voice over the original.</p>
+                          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end">
+                            <select aria-label="Dub language" value={dubLang} onChange={(e) => setDubLang(e.target.value)} className="slot sm:max-w-[14rem]">
+                              {DUB_LANGS.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => startDub(file.fileid)}
+                              disabled={!dubConsent}
+                              className="key-rec !py-2.5 sm:min-w-[9rem]"
+                              data-magnetic
+                            >
+                              <span className="h-2.5 w-2.5 rounded-full bg-cream" aria-hidden="true" /> Dub it
+                            </button>
+                          </div>
+                          <label className="mt-3 flex items-start gap-2 text-xs leading-snug text-ink/80">
+                            <input type="checkbox" checked={dubConsent} onChange={(e) => setDubConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#ff3d2e]" />
+                            <span>This is my voice, or I have the speaker&apos;s permission. The transcript goes to Groq for translation and a voice sample to Fish Audio.</span>
+                          </label>
+                          {dubError && <p role="alert" className="mt-2 font-read text-xs font-medium text-rec">{dubError}</p>}
+                          {(dubs[file.fileid] ?? []).map((d) => {
+                            const name = DUB_LANGS.find(([code]) => code === d.language)?.[1] ?? d.language;
+                            const busy = d.status !== 'done' && d.status !== 'failed';
+                            return (
+                              <div key={d.id} className="mt-3 border-2 border-ink/20 p-3">
+                                <p className="flex items-center gap-2 text-sm font-bold">
+                                  <span className={`led ${busy ? 'led-on animate-pulse' : d.status === 'done' ? '!bg-ink' : 'led-on'}`} aria-hidden="true" />
+                                  {name}
+                                  <span className={`font-read text-xs font-normal ${d.status === 'failed' ? 'text-rec' : 'text-ink/60'}`}>· {d.status === 'failed' && d.error ? d.error : DUB_LABEL[d.status] ?? d.status}</span>
+                                </p>
+                                {d.status === 'done' && d.url && (
+                                  <>
+                                    {d.url.endsWith('.mp4')
+                                      ? <video controls preload="none" src={d.url} className="mt-2 w-full border-2 border-ink" />
+                                      : <audio controls preload="none" src={d.url} className="mt-2 w-full" />}
+                                    <a href={d.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block font-read text-xs font-medium text-rec underline-offset-4 hover:underline">Download ↗</a>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}

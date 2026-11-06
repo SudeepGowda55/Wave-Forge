@@ -38,6 +38,10 @@ def reference(usermail, fileid):
     return picked[0][0], picked[-1][1], " ".join(t for _, _, t in picked)
 
 
+def cut_sample(fileurl, start, end, path):
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(start), "-to", str(end), "-i", fileurl, "-ac", "1", "-ar", "22050", path], check=True)
+
+
 def fish_tts(text, sample_path, sample_text):
     body = {"text": text, "format": "mp3", "references": [{"audio": open(sample_path, "rb").read(), "text": sample_text}]}
     r = requests.post(
@@ -65,10 +69,7 @@ def speak(usermail, fileid, text):
     start, end, sample_text = reference(usermail, fileid)
     with tempfile.TemporaryDirectory() as workdir:
         sample = os.path.join(workdir, "sample.wav")
-        subprocess.run(
-            ["ffmpeg", "-loglevel", "error", "-y", "-ss", str(start), "-to", str(end), "-i", row[0], "-ac", "1", "-ar", "22050", sample],
-            check=True,
-        )
+        cut_sample(row[0], start, end, sample)
         audio = fish_tts(text, sample, sample_text)
         clip = os.path.join(workdir, "clip.mp3")
         with open(clip, "wb") as f:

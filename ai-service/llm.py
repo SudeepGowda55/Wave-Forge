@@ -14,7 +14,7 @@ def groq_headers():
     return {"Authorization": f"Bearer {os.environ['GROQ_API_KEY']}"}
 
 
-def complete(system, prompt):
+def complete(system, prompt, json_mode=False):
     last_error = None
     for model in MODELS:
         r = requests.post(
@@ -23,8 +23,9 @@ def complete(system, prompt):
             json={
                 "model": model,
                 "messages": [{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-                "max_tokens": 1500,
+                "max_tokens": 3000,
                 "reasoning_effort": "low",
+                **({"response_format": {"type": "json_object"}} if json_mode else {}),
             },
             timeout=60,
         )

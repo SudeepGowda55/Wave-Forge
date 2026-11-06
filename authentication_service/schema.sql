@@ -38,6 +38,18 @@ CREATE TABLE IF NOT EXISTS voice_clips (
     created_at timestamptz DEFAULT now()
 );
 
+-- owned by ai-service: translated, re-voiced copies of an upload
+CREATE TABLE IF NOT EXISTS dubs (
+    id         serial PRIMARY KEY,
+    usermail   text,
+    fileid     text,
+    language   text,
+    status     text DEFAULT 'queued',
+    url        text,
+    error      text,
+    created_at timestamptz DEFAULT now()
+);
+
 -- per-user daily caps that keep the free tiers from being exhausted
 CREATE TABLE IF NOT EXISTS ai_usage (
     usermail   text,
