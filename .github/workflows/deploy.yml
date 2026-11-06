@@ -1,0 +1,86 @@
+# Builds every service image on GitHub's runners, pushes them to GHCR, then makes the
+# Oracle VM pull and restart. The 1-core server never compiles anything.
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["frontend/**", "**.md", "images/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - { name: gateway, context: gateway-service }
+          - { name: auth, context: authentication_service }
+          - { name: converter, context: converter-service }
+          - { name: ai, context: ai-service }
+          - { name: notifier, context: notification_service }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          push: true
+          tags: |
+            ghcr.io/sudeepgowda55/waveforge-${{ matrix.service.name }}:latest
+            ghcr.io/sudeepgowda55/waveforge-${{ matrix.service.name }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull and restart on the server
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$HOST" ]; then
+            echo "::notice::DEPLOY_HOST / DEPLOY_SSH_KEY / DEPLOY_KNOWN_HOSTS not set: images pushed, auto-deploy skipped"
+            exit 0
+          fi
+          install -m 700 -d ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # the token goes over stdin so it never appears in a process list or log
+          echo "$REGISTRY_TOKEN" | ssh -i ~/.ssh/deploy_key "ubuntu@$HOST" '
+            set -e
+            cd ~/Wave-Forge
+            git pull -q
+            docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose pull -q
+            docker compose up -d --remove-orphans
+            docker logout ghcr.io
+            docker image prune -f
+            docker compose ps --format "{{.Service}} {{.Status}}"
+          '
+          echo "DEPLOY_CONFIGURED=true" >> "$GITHUB_ENV"
+      - name: Health check
+        if: ${{ env.DEPLOY_CONFIGURED == 'true' }}
+        run: |
+          for i in $(seq 1 20); do
+            curl -fsS https://api.waveforge.sudeepgowda.tech/health && exit 0
+            sleep 3
+          done
+          exit 1

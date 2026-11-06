@@ -1,4 +1,6 @@
-# Backend. Copy each service's .env.example to .env and fill it in, then: docker compose up -d --build
+# Backend. Copy each service's .env.example to .env and fill it in, then:
+#   local development: docker compose up -d --build   (builds from source)
+#   server:            docker compose pull && docker compose up -d   (images built by GitHub Actions)
 # Postgres (Neon), MongoDB (Atlas), RabbitMQ (CloudAMQP), Cloudinary and Mailgun are external services.
 services:
   caddy:
@@ -14,6 +16,7 @@ services:
     depends_on: [gateway]
 
   gateway:
+    image: ghcr.io/sudeepgowda55/waveforge-gateway:latest
     build: ./gateway-service
     restart: unless-stopped
     env_file: ./gateway-service/.env
@@ -23,11 +26,13 @@ services:
     depends_on: [auth]
 
   auth:
+    image: ghcr.io/sudeepgowda55/waveforge-auth:latest
     build: ./authentication_service
     restart: unless-stopped
     env_file: ./authentication_service/.env
 
   converter:
+    image: ghcr.io/sudeepgowda55/waveforge-converter:latest
     build: ./converter-service
     restart: unless-stopped
     env_file: ./converter-service/.env
@@ -36,6 +41,7 @@ services:
     depends_on: [auth]
 
   ai:
+    image: ghcr.io/sudeepgowda55/waveforge-ai:latest
     build: ./ai-service
     restart: unless-stopped
     env_file: ./ai-service/.env
@@ -44,6 +50,7 @@ services:
     depends_on: [auth]
 
   notifier:
+    image: ghcr.io/sudeepgowda55/waveforge-notifier:latest
     build: ./notification_service
     restart: unless-stopped
     env_file: ./notification_service/.env
