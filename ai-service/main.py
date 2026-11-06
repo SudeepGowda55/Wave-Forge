@@ -4,13 +4,15 @@ import dotenv, pika, requests
 
 dotenv.load_dotenv()
 
-import ask, db, dub, insights, llm, transcribe, voice  # noqa: E402  (after .env is loaded)
+import ask, db, dub, insights, live, llm, transcribe, voice  # noqa: E402  (after .env is loaded)
 
 AUTH = os.environ.get("AUTH_SERVICE_URL", "http://localhost:8001")
 TRANSCRIBE_PER_DAY = int(os.environ.get("TRANSCRIBE_PER_DAY", "10"))
 ASK_PER_DAY = int(os.environ.get("ASK_PER_DAY", "30"))
 VOICE_PER_DAY = int(os.environ.get("VOICE_PER_DAY", "5"))
 DUB_PER_DAY = int(os.environ.get("DUB_PER_DAY", "2"))
+# every live call (transcribe, translate, reply, speak) counts; one interpreted sentence is three calls
+LIVE_PER_DAY = int(os.environ.get("LIVE_PER_DAY", "150"))
 # showcase account whose processed files are public at GET /demo
 DEMO_USERMAIL = os.environ.get("DEMO_USERMAIL", "")
 
@@ -123,6 +125,8 @@ class Handler(BaseHTTPRequestHandler):
         usermail = self.user()
         if not usermail:
             return
+        if self.path == "/ai/live/voice":
+            return self.reply(200, live.get_voice(usermail))
         fileid = self.path.rsplit("/", 1)[1]
         if self.path.startswith("/ai/transcript/"):
             rows = ask.file_transcript(usermail, fileid)
@@ -135,7 +139,64 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(200, insights.get(usermail, fileid))
         self.reply(404, "not found")
 
+    def do_DELETE(self):
+        usermail = self.user()
+        if not usermail:
+            return
+        if self.path != "/ai/live/voice":
+            return self.reply(404, "not found")
+        live.delete_voice(usermail)
+        self.reply(200, {"exists": False})
+
+    def reply_audio(self, audio):
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("Content-Length", str(len(audio)))
+        self.end_headers()
+        self.wfile.write(audio)
+
+    def do_live(self, usermail):
+        """Live mode: raw audio bodies for recordings, JSON for everything else."""
+        if db.used_today(usermail, "live") >= LIVE_PER_DAY:
+            return self.reply(429, f"Daily live limit of {LIVE_PER_DAY} calls reached. Try again tomorrow.")
+        body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        kind = self.headers.get("Content-Type", "")
+        try:
+            if self.path == "/ai/live/voice":
+                if self.headers.get("X-Consent") != "yes":
+                    return self.reply(400, "Confirm that this is your own voice before recording.")
+                result = live.save_voice(usermail, body, kind)
+            elif self.path == "/ai/live/transcribe":
+                result = live.transcribe(body, kind)
+            else:
+                data = json.loads(body or b"{}")
+                text = str(data.get("text", "")).strip()[:300]
+                if not text:
+                    return self.reply(400, "Nothing to say.")
+                if self.path == "/ai/live/speak":
+                    audio = live.speak(usermail, text, data.get("voice") == "mine")
+                    db.record_usage(usermail, "live")
+                    return self.reply_audio(audio)
+                if self.path == "/ai/live/translate":
+                    result = live.translate(text, str(data.get("lang", "")))
+                elif self.path == "/ai/live/reply":
+                    history = data.get("history") if isinstance(data.get("history"), list) else []
+                    result = live.reply(history, text)
+                else:
+                    return self.reply(404, "not found")
+        except json.JSONDecodeError:
+            return self.reply(400, "invalid JSON")
+        except voice.VoiceError as e:
+            return self.reply(400, str(e))
+        except llm.QuotaError:
+            return self.reply(429, "The free AI limit is reached right now. Try again in a minute.")
+        db.record_usage(usermail, "live")
+        self.reply(200, result)
+
     def do_POST(self):
+        if self.path.startswith("/ai/live/"):
+            usermail = self.user()
+            return self.do_live(usermail) if usermail else None
         if self.path not in ("/ai/ask", "/ai/voice", "/ai/dub"):
             return self.reply(404, "not found")
         usermail = self.user()

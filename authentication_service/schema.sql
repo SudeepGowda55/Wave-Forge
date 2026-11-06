@@ -59,6 +59,15 @@ CREATE TABLE IF NOT EXISTS dubs (
     created_at timestamptz DEFAULT now()
 );
 
+-- owned by ai-service: one recorded voice per user for live mode, deletable at any time
+CREATE TABLE IF NOT EXISTS live_voices (
+    usermail    text PRIMARY KEY,
+    sample_url  text,
+    sample_text text,
+    seconds     real,
+    created_at  timestamptz DEFAULT now()
+);
+
 -- per-user daily caps that keep the free tiers from being exhausted
 CREATE TABLE IF NOT EXISTS ai_usage (
     usermail   text,

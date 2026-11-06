@@ -240,9 +240,12 @@ const FilesPage: React.FC = () => {
     <div className="relative z-10 mx-auto min-h-screen max-w-[90rem] px-4 pb-24 pt-28 sm:px-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <Amp text="Signal log." className="title text-[clamp(2.2rem,7vw,6.5rem)]" />
-        <Link href="/upload" className="key-rec mb-3" data-magnetic>
-          <span className="h-2.5 w-2.5 rounded-full bg-void" aria-hidden="true" /> Upload
-        </Link>
+        <div className="mb-3 flex flex-wrap gap-3">
+          <Link href="/live" className="key-cream" data-magnetic>Go live</Link>
+          <Link href="/upload" className="key-rec" data-magnetic>
+            <span className="h-2.5 w-2.5 rounded-full bg-void" aria-hidden="true" /> Upload
+          </Link>
+        </div>
       </div>
       <p className="mt-2 max-w-md text-fg/75" data-reveal>Every file you have given the machine, live as it moves down the signal path, with its transcript once the AI has listened to it.</p>
 

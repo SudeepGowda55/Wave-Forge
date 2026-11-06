@@ -42,8 +42,8 @@ def cut_sample(fileurl, start, end, path):
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(start), "-to", str(end), "-i", fileurl, "-ac", "1", "-ar", "22050", path], check=True)
 
 
-def fish_tts(text, sample_path, sample_text):
-    body = {"text": text, "format": "mp3", "references": [{"audio": open(sample_path, "rb").read(), "text": sample_text}]}
+def fish_tts(text, sample_path, sample_text, latency="normal"):
+    body = {"text": text, "format": "mp3", "latency": latency, "references": [{"audio": open(sample_path, "rb").read(), "text": sample_text}]}
     r = requests.post(
         "https://api.fish.audio/v1/tts",
         data=ormsgpack.packb(body),

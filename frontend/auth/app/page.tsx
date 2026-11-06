@@ -51,6 +51,7 @@ const FEATURES = [
   { title: "Ask", body: "Every upload is transcribed with timestamps. Ask a question and get the answer with the moment it was said.", href: "/demo", cta: "See it answer", accent: "#b18cff" },
   { title: "Clone", body: "Type a line and hear it in the voice of the person in your video. Consent first, clips labelled as AI.", href: "/demo", cta: "Hear a clone", accent: "#ffb547" },
   { title: "Dub", body: "The first three minutes translated and spoken in the speaker's own voice, laid back onto the original video.", href: "/demo", cta: "Watch a dub", accent: "#6bf6ff" },
+  { title: "Go live", body: "Record your voice once, then speak in English and hear yourself in Spanish or Japanese seconds later, or just talk to the machine.", href: "/live", cta: "Go live", accent: "#ffb547" },
 ];
 
 export default function Home() {
@@ -196,10 +197,10 @@ export default function Home() {
         </section>
 
         <section className="mx-auto max-w-[90rem] px-4 pb-24 sm:px-8">
-          <Amp as="h2" text="Four things it does." className="title mb-12 text-[clamp(1.8rem,4.6vw,4rem)]" />
+          <Amp as="h2" text="What it does." className="title mb-12 text-[clamp(1.8rem,4.6vw,4rem)]" />
           <div className="grid gap-4 md:grid-cols-2">
             {FEATURES.map((f) => (
-              <Link key={f.title} href={f.href} className="plate group block p-7 transition-[box-shadow] hover:shadow-[inset_0_0_0_1px_rgba(107,246,255,0.5)]" data-reveal>
+              <Link key={f.title} href={f.href} className={`plate group block p-7 transition-[box-shadow] hover:shadow-[inset_0_0_0_1px_rgba(107,246,255,0.5)] ${f.title === "Go live" ? "md:col-span-2" : ""}`} data-reveal>
                 <p className="title text-3xl" style={{ color: f.accent }}>{f.title}</p>
                 <p className="mt-4 max-w-md leading-relaxed text-fg/75">{f.body}</p>
                 <p className="mt-6 font-read text-xs uppercase tracking-[0.14em] text-fg/60 transition-colors group-hover:text-cyan">{f.cta} →</p>
