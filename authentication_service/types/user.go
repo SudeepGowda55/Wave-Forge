@@ -30,4 +30,5 @@ type File struct {
 	FileUrl         string `json:"fileurl"`
 	DestAudioFormat string `json:"destaudioformat"`
 	SamplingRate    string `json:"samplingrate"`
+	Status          string `json:"status"`
 }

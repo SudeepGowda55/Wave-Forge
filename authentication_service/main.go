@@ -43,6 +43,7 @@ func main() {
 	router.POST("/fileentry", utils.FileEntry)
 	router.POST("/getfiles", utils.GetFiles)
 	router.POST("/updatefileurl", utils.UpdateFileUrl)
+	router.POST("/updatestatus", utils.UpdateStatus)
 
 	router.Run(":8001")
 }

@@ -10,3 +10,4 @@ notification_service/node_modules
 notification_service/.env
 secrets-yaml__pycache__
 frontend/auth/.env.local
+ai-service/.env

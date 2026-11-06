@@ -28,13 +28,14 @@ func FileEntry(contextProvider *gin.Context) {
 
 func UpdateFileUrl(contextProvider *gin.Context) {
 	fileUrl := contextProvider.PostForm("fileurl")
+	status := contextProvider.DefaultPostForm("status", "converted")
 
 	if fileUrl == "" {
 		contextProvider.JSON(400, "File URL not specified")
 		return
 	}
 
-	_, err := database.Db.Exec("UPDATE userfiles SET fileurl = $1 WHERE usermail = $2 AND fileid = $3", fileUrl, contextProvider.PostForm("usermail"), contextProvider.PostForm("fileid"))
+	_, err := database.Db.Exec("UPDATE userfiles SET fileurl = $1, status = $2 WHERE usermail = $3 AND fileid = $4", fileUrl, status, contextProvider.PostForm("usermail"), contextProvider.PostForm("fileid"))
 
 	if err != nil {
 		contextProvider.IndentedJSON(500, err.Error())
@@ -53,7 +54,7 @@ func GetFiles(contextProvider *gin.Context) {
 		return
 	}
 
-	rows, err := database.Db.Query("SELECT fileid, filename, fileurl, destaudioformat, samplingrate FROM userfiles WHERE usermail = $1", userMail)
+	rows, err := database.Db.Query("SELECT fileid, filename, fileurl, destaudioformat, samplingrate, status FROM userfiles WHERE usermail = $1 ORDER BY created_at DESC", userMail)
 
 	if err != nil {
 		contextProvider.JSON(500, err.Error())
@@ -67,7 +68,7 @@ func GetFiles(contextProvider *gin.Context) {
 	for rows.Next() {
 		var file types.File
 
-		err := rows.Scan(&file.FileId, &file.FileName, &file.FileUrl, &file.DestAudioFormat, &file.SamplingRate)
+		err := rows.Scan(&file.FileId, &file.FileName, &file.FileUrl, &file.DestAudioFormat, &file.SamplingRate, &file.Status)
 
 		if err != nil {
 			contextProvider.JSON(500, err.Error())
@@ -78,4 +79,24 @@ func GetFiles(contextProvider *gin.Context) {
 	}
 
 	contextProvider.JSON(200, filesList)
+}
+
+// UpdateStatus lets the converter and AI workers move a file through
+// queued -> converting -> converted -> transcribing -> done | failed.
+func UpdateStatus(contextProvider *gin.Context) {
+	status := contextProvider.PostForm("status")
+
+	if status == "" {
+		contextProvider.JSON(400, "status not specified")
+		return
+	}
+
+	_, err := database.Db.Exec("UPDATE userfiles SET status = $1 WHERE fileid = $2", status, contextProvider.PostForm("fileid"))
+
+	if err != nil {
+		contextProvider.IndentedJSON(500, err.Error())
+		return
+	}
+
+	contextProvider.IndentedJSON(200, "Status updated")
 }

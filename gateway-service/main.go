@@ -1,6 +1,10 @@
 package main
 
 import (
+	"net/http/httputil"
+	"net/url"
+	"os"
+
 	"Audio_Conversion-Microservice/gateway-service/auth"
 	"Audio_Conversion-Microservice/gateway-service/db"
 	"Audio_Conversion-Microservice/gateway-service/rabbitmq"
@@ -43,6 +47,15 @@ func main() {
 	router.POST("/login", auth.Forward("/login"))
 	router.POST("/upload", auth.RequireAuth(), db.UploadFile)
 	router.POST("/getfiles", auth.RequireAuth(), db.GetFiles)
+
+	// /ai/* goes to the internal AI service with the caller's email taken from the verified token
+	aiURL, _ := url.Parse(os.Getenv("AI_SERVICE_URL"))
+	aiProxy := httputil.NewSingleHostReverseProxy(aiURL)
+	router.Any("/ai/*path", auth.RequireAuth(), func(c *gin.Context) {
+		c.Request.Header.Del("Authorization")
+		c.Request.Header.Set("usermail", c.GetString("usermail"))
+		aiProxy.ServeHTTP(c.Writer, c.Request)
+	})
 
 	router.Run(":8000")
 }

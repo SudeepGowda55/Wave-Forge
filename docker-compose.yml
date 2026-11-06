@@ -19,6 +19,7 @@ services:
     env_file: ./gateway-service/.env
     environment:
       AUTHENTICATION_SERVICE_URL: http://auth:8001
+      AI_SERVICE_URL: http://ai:8002
     depends_on: [auth]
 
   auth:
@@ -31,7 +32,15 @@ services:
     restart: unless-stopped
     env_file: ./converter-service/.env
     environment:
-      UPDATE_FILE_URL: http://auth:8001/updatefileurl
+      AUTH_SERVICE_URL: http://auth:8001
+    depends_on: [auth]
+
+  ai:
+    build: ./ai-service
+    restart: unless-stopped
+    env_file: ./ai-service/.env
+    environment:
+      AUTH_SERVICE_URL: http://auth:8001
     depends_on: [auth]
 
   notifier:
