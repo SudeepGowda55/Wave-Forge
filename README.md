@@ -4,7 +4,7 @@ Upload a video (or audio file), pick MP3 or WAV and a sampling rate, and get the
 
 Live: https://waveforge.sudeepgowda.tech · API: https://api.waveforge.sudeepgowda.tech
 
-![Architecture_diagram](https://github.com/SudeepGowda55/Audio_Conversion-Microservice/blob/main/images/mini-arch.png?raw=true)
+![WaveForge architecture](images/architecture.svg)
 
 ## How it works
 
