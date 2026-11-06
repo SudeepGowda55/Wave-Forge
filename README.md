@@ -9,8 +9,8 @@ Live: https://waveforge.sudeepgowda.tech · API: https://api.waveforge.sudeepgow
 ## How it works
 
 1. **Gateway** (Go/Gin, port 8000): the only public service. Checks the JWT with the auth service, stores the upload in **MongoDB GridFS**, records it through the auth service and publishes a message to the `file_uploaded` queue.
-2. **Authentication service** (Go/Gin, port 8001, internal): signup and JWT validation, plus the `users`/`userfiles` tables in **PostgreSQL (Neon)**.
-3. **Converter** (Python + ffmpeg): consumes `file_uploaded`, pulls the file from GridFS, converts/re-samples it with pydub, uploads the result to **Cloudinary**, writes the URL back through the auth service and publishes to `file_converted_notification`.
+2. **Authentication service** (Go/Gin, port 8001, internal): signup and login with bcrypt-hashed passwords, JWT validation, and the `users`/`userfiles` tables (with each file's live status) in **PostgreSQL (Neon)**.
+3. **Converter** (Python + ffmpeg): consumes `file_uploaded`, pulls the file from GridFS, converts/re-samples it with pydub, uploads the result to **Cloudinary**, writes the URL and status back through the auth service and publishes to the `file_converted` fanout exchange, which copies every finished file to the AI service and the notifier.
 4. **AI service** (Python): gets its own copy of every converted file from the `file_converted` fanout exchange.
    - **Transcription**: first 10 minutes via Groq Whisper into Postgres full-text-indexed segments.
    - **Ask your videos** (`/ai/ask`): full-text retrieval over a user's transcripts, answered by a free Groq LLM with `[mm:ss]` citations.
