@@ -12,7 +12,7 @@ import (
 var MongodbClient *mongo.Client
 
 func Connection() {
-	connectionString := fmt.Sprint("mongodb+srv://", os.Getenv("MONGODB_USERNAME"), ":", os.Getenv("MONGODB_PASSWORD"), "@audioconversion.wr8azuc.mongodb.net/?retryWrites=true&w=majority&appName=", os.Getenv("MONGODB_APPNAME"))
+	connectionString := os.Getenv("MONGODB_URL")
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(connectionString).SetServerAPIOptions(serverAPI)

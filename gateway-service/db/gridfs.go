@@ -34,14 +34,22 @@ func CreateBucket() {
 // curl -X POST -F 'usermail=ssudeepgowda55@gmail.com' -F 'firstname=Sudeep' -F 'sourcefile=@/home/sudeep/dog.mp4' http://localhost:8000/upload
 
 func UploadFile(contextProvider *gin.Context) {
-	file, fileMetadata, err := contextProvider.Request.FormFile("sourcefile")
+	usermail := contextProvider.GetString("usermail")
+	destAudioFormat := contextProvider.PostForm("destaudioformat")
 
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
+	if destAudioFormat != "mp3" && destAudioFormat != "wav" {
+		contextProvider.JSON(400, "destaudioformat must be mp3 or wav")
 		return
 	}
 
-	userID := options.GridFSUpload().SetMetadata(bson.D{{Key: "userid", Value: contextProvider.PostForm("usermail")}})
+	file, fileMetadata, err := contextProvider.Request.FormFile("sourcefile")
+
+	if err != nil {
+		contextProvider.JSON(400, err.Error())
+		return
+	}
+
+	userID := options.GridFSUpload().SetMetadata(bson.D{{Key: "userid", Value: usermail}})
 
 	objectID, err := gridfsBucket.UploadFromStream(fileMetadata.Filename, io.Reader(file), userID)
 
@@ -51,10 +59,10 @@ func UploadFile(contextProvider *gin.Context) {
 	}
 
 	var fileEntryData = types.FileEntry{
-		UserMail:        contextProvider.PostForm("usermail"),
-		FileId:          objectID.String(),
+		UserMail:        usermail,
+		FileId:          objectID.Hex(),
 		FileName:        fileMetadata.Filename,
-		DestAudioFormat: contextProvider.PostForm("destaudioformat"),
+		DestAudioFormat: destAudioFormat,
 		SamplingRate:    contextProvider.PostForm("samplingrate"),
 	}
 
@@ -77,22 +85,19 @@ func UploadFile(contextProvider *gin.Context) {
 
 	res, err := httpClient.Do(req)
 
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
-		return
-	}
-
-	if res.StatusCode != 201 {
+	if err != nil || res.StatusCode != 201 {
+		// no record of it in Postgres, so don't leave an orphan upload in GridFS
+		_ = gridfsBucket.Delete(objectID)
 		contextProvider.JSON(500, "Error in File Data Entry")
 		return
 	}
 
 	var fileUploadedMessage = types.FileUploadedMessage{
-		UserMail:        contextProvider.PostForm("usermail"),
+		UserMail:        usermail,
 		FileName:        fileMetadata.Filename,
-		FileID:          objectID.String(),
+		FileID:          objectID.Hex(),
 		UserName:        contextProvider.PostForm("firstname"),
-		DestAudioFormat: contextProvider.PostForm("destaudioformat"),
+		DestAudioFormat: destAudioFormat,
 		SamplingRate:    contextProvider.PostForm("samplingrate"),
 	}
 
@@ -114,5 +119,5 @@ func UploadFile(contextProvider *gin.Context) {
 		return
 	}
 
-	contextProvider.JSON(201, "File Successfully Uploaded with the ObjectID: "+objectID.String())
+	contextProvider.JSON(201, "File Successfully Uploaded with the ObjectID: "+objectID.Hex())
 }

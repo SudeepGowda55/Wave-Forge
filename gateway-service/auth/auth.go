@@ -51,46 +51,53 @@ func Signup(contextProvider *gin.Context) {
 		return
 	}
 
+	if resp.StatusCode != 201 {
+		contextProvider.JSON(resp.StatusCode, string(body))
+		return
+	}
+
 	token := string(body)
 	jwtToken := strings.ReplaceAll(token, "\"", "")
 
 	contextProvider.JSON(200, jwtToken)
 }
 
-func ValidateJWT(contextProvider *gin.Context) {
+// RequireAuth checks the "Authorization: Bearer <jwt>" header with the authentication
+// service and stores the email from the token as "usermail" for the handler.
+func RequireAuth() gin.HandlerFunc {
+	return func(contextProvider *gin.Context) {
+		jwtToken := strings.TrimPrefix(contextProvider.GetHeader("Authorization"), "Bearer ")
 
-	jwtToken := contextProvider.GetHeader("JWTToken")
+		if jwtToken == "" {
+			contextProvider.AbortWithStatusJSON(401, "JWT Token is missing")
+			return
+		}
 
-	if jwtToken == "" {
-		contextProvider.JSON(400, "JWT Token is missing")
-		return
+		authenticationServiceUrl := fmt.Sprint(os.Getenv("AUTHENTICATION_SERVICE_URL"), "/validate")
+
+		req, _ := http.NewRequest("POST", authenticationServiceUrl, nil)
+		req.Header.Set("JWTToken", jwtToken)
+
+		resp, err := http.DefaultClient.Do(req)
+
+		if err != nil {
+			contextProvider.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		defer resp.Body.Close()
+
+		var result struct {
+			Valid    bool   `json:"tokenvalidity"`
+			UserMail string `json:"usermail"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil || !result.Valid {
+			contextProvider.AbortWithStatusJSON(401, "Invalid or expired JWT Token")
+			return
+		}
+
+		contextProvider.Set("usermail", result.UserMail)
+		contextProvider.Next()
 	}
-
-	httpClient := &http.Client{}
-
-	authenticationServiceUrl := fmt.Sprint(os.Getenv("AUTHENTICATION_SERVICE_URL"), "/validate")
-
-	req, _ := http.NewRequest("POST", authenticationServiceUrl, nil)
-	req.Header.Set("JWTToken", jwtToken)
-
-	resp, err := httpClient.Do(req)
-
-	if err != nil {
-		contextProvider.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	respData, err := io.ReadAll(resp.Body)
-
-	defer resp.Body.Close()
-
-	if err != nil {
-		contextProvider.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	response := string(respData)
-	resMessage := strings.ReplaceAll(response, "\"", "")
-
-	contextProvider.JSON(200, resMessage)
 }

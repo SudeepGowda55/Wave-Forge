@@ -13,7 +13,7 @@ func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, usermail")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
@@ -38,11 +38,10 @@ func main() {
 
 	router.Use(corsMiddleware())
 
+	router.GET("/health", func(c *gin.Context) { c.Status(200) })
 	router.POST("/signup", auth.Signup)
-	router.POST("/validatejwt", auth.ValidateJWT)
-	router.POST("/updatefileurl", db.UpdateFileUrl)
-	router.POST("/upload", db.UploadFile)
-	router.POST("/getfiles", db.GetFiles)
+	router.POST("/upload", auth.RequireAuth(), db.UploadFile)
+	router.POST("/getfiles", auth.RequireAuth(), db.GetFiles)
 
 	router.Run(":8000")
 }

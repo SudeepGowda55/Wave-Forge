@@ -3,6 +3,7 @@ package auth
 import (
 	"Audio_Conversion-Microservice/authentication_service/database"
 	"Audio_Conversion-Microservice/authentication_service/types"
+	"errors"
 	"net/http"
 	"os"
 	"time"
@@ -17,7 +18,7 @@ func createJWT(userData types.UserSignup) string {
 		CustomClaims: userData.UserMail,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 100)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 30)),
 			Issuer:    "Sudeep Gowda",
 		},
 	}
@@ -34,6 +35,8 @@ func createJWT(userData types.UserSignup) string {
 	}
 }
 
+// Signup doubles as login: there is no password, so signing up again with the same
+// email just refreshes the name and hands back a new token.
 func Signup(contextProvider *gin.Context) {
 	var userdata = types.UserSignup{}
 
@@ -42,7 +45,12 @@ func Signup(contextProvider *gin.Context) {
 		return
 	}
 
-	_, err := database.Db.Exec("INSERT INTO users (firstname, username, usermail) VALUES ($1, $2, $3)", userdata.FirstName, userdata.UserName, userdata.UserMail)
+	if userdata.UserMail == "" || userdata.FirstName == "" {
+		contextProvider.IndentedJSON(http.StatusBadRequest, "usermail and firstname are required")
+		return
+	}
+
+	_, err := database.Db.Exec("INSERT INTO users (firstname, username, usermail) VALUES ($1, $2, $3) ON CONFLICT (usermail) DO UPDATE SET firstname = EXCLUDED.firstname, username = EXCLUDED.username", userdata.FirstName, userdata.UserName, userdata.UserMail)
 
 	if err != nil {
 		contextProvider.IndentedJSON(http.StatusInternalServerError, err.Error())
@@ -56,24 +64,20 @@ func Signup(contextProvider *gin.Context) {
 func ValidateJWT(contextProvider *gin.Context) {
 	jwtToken := contextProvider.GetHeader("JWTToken")
 
-	token, err := jwt.ParseWithClaims(jwtToken, &types.JWTPayload{}, func(token *jwt.Token) (interface{}, error) {
+	claims := &types.JWTPayload{}
+
+	token, err := jwt.ParseWithClaims(jwtToken, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			contextProvider.JSON(http.StatusBadRequest, "Invalid JSON Web Token")
-			return nil, nil
+			return nil, errors.New("unexpected signing method")
 		}
 
 		return []byte(os.Getenv("JWT_PRIVATE_KEY")), nil
 	})
 
-	if err != nil {
-		contextProvider.JSON(500, err.Error())
+	if err != nil || !token.Valid {
+		contextProvider.IndentedJSON(401, gin.H{"tokenvalidity": false})
 		return
 	}
 
-	if !token.Valid {
-		contextProvider.IndentedJSON(401, gin.H{"tokenvalidity": token.Valid})
-		return
-	} else {
-		contextProvider.IndentedJSON(200, gin.H{"tokenvalidity": token.Valid})
-	}
+	contextProvider.IndentedJSON(200, gin.H{"tokenvalidity": true, "usermail": claims.CustomClaims})
 }

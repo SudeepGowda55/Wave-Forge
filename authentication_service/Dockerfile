@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:1.22
 
 WORKDIR /app
 
@@ -9,4 +9,4 @@ RUN go build -o main
 
 EXPOSE 8001
 
-CMD [ "./main", "&", "sleep", "infinity" ]
+CMD ["./main"]

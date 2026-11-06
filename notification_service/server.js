@@ -11,15 +11,14 @@ const mailgunClient = mg.client({ username: "api", key: process.env.MAILGUN_API_
 async function sendMail(message) {
     try {
         const response = await mailgunClient.messages.create(process.env.MAILGUN_DOMAIN_NAME, {
-            from: "WaveForge <noreply@waveforge.com>",
+            from: `WaveForge <postmaster@${process.env.MAILGUN_DOMAIN_NAME}>`,
             to: [message.usermail],
             subject: "Audio Conversion Successful!",
             text: `Your File ${message.filename} has been successfully converted ${message.username}! You can download it using this File URL ${message.fileurl} or by Login into your account`,
-            // html: "<h1>Testing some Mailgun awesomeness!</h1>"
         })
         return response.status
     } catch (error) {
-        console.error(error)
+        console.error(` [Notification Service] Mail to ${message.usermail} failed: ${error.status} ${error.details || error.message}`)
     }
 }
 
@@ -31,13 +30,13 @@ async function connectToRabbitMQ() {
         console.log(" [Notification Service] waiting for messages from the file_converted_notification queue");
         channel.consume("file_converted_notification", async message => {
             const response = await sendMail(JSON.parse(message.content.toString()))
-            if (response === 200){
-                channel.ack(message)
-                console.log(" [Notification Service] Mail sent successfully")
-            }
+            if (response === 200) console.log(" [Notification Service] Mail sent successfully")
+            // ack either way: Mailgun rejections (e.g. unauthorized sandbox recipient) must not block the queue
+            channel.ack(message)
         });
     } catch (error) {
         console.error(error)
+        process.exit(1)
     }
 }
 

@@ -1,9 +1,10 @@
-FROM node:latest
+FROM node:22-slim
 
 WORKDIR /app
 
+COPY package*.json .
+RUN npm ci --omit=dev
+
 COPY . .
 
-RUN npm install --production
-
-CMD ["node", "server.js", "&", "sleep", "infinity"]
+CMD ["node", "server.js"]

@@ -1,15 +1,10 @@
 package utils
 
 import (
-	"log"
-
 	"github.com/joho/godotenv"
 )
 
+// Loadenv reads a local .env if present; in Docker the variables come from the environment itself.
 func Loadenv() {
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
 }

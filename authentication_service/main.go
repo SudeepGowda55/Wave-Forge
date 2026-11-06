@@ -4,7 +4,6 @@ import (
 	"Audio_Conversion-Microservice/authentication_service/auth"
 	"Audio_Conversion-Microservice/authentication_service/database"
 	"Audio_Conversion-Microservice/authentication_service/utils"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -28,11 +27,8 @@ func corsMiddleware() gin.HandlerFunc {
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// optional: in Docker the variables come from the environment itself
+	_ = godotenv.Load()
 
 	database.ConnectToDatabase()
 
@@ -40,6 +36,7 @@ func main() {
 
 	router.Use(corsMiddleware())
 
+	router.GET("/health", func(c *gin.Context) { c.Status(200) })
 	router.POST("/signup", auth.Signup)
 	router.POST("/validate", auth.ValidateJWT)
 	router.POST("/fileentry", utils.FileEntry)
