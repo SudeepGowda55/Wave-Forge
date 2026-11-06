@@ -8,21 +8,32 @@ gsap.registerPlugin(ScrollTrigger);
 
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Headline whose letters swell from a flat line to full amplitude, centre first, like a signal coming in. */
+/** Headline that locks in like a tuned signal: letters arrive split into cyan and violet ghosts, then snap together. */
 export function Amp({ text, as = "h1", className = "", delay = 0.15 }: { text: string; as?: "h1" | "h2" | "h3" | "p"; className?: string; delay?: number }) {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     if (reduced()) return;
+    const letters = ref.current!.querySelectorAll<HTMLElement>(".amp > span > span > span");
     const ctx = gsap.context(() => {
-      gsap.from(ref.current!.querySelectorAll(".amp > span > span > span"), {
-        scaleY: 0.04,
-        color: "#ff3d2e",
-        duration: 1.1,
-        ease: "elastic.out(1, 0.45)",
-        stagger: { each: 0.022, from: "center" },
-        delay,
-        scrollTrigger: { trigger: ref.current, start: "top 92%", once: true },
-      });
+      gsap.fromTo(
+        letters,
+        {
+          opacity: 0,
+          y: () => gsap.utils.random(-14, 14),
+          textShadow: () => `${gsap.utils.random(-18, -6)}px 0 0 rgba(107,246,255,0.9), ${gsap.utils.random(6, 18)}px 0 0 rgba(177,140,255,0.9)`,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          textShadow: "0px 0 0 rgba(107,246,255,0), 0px 0 0 rgba(177,140,255,0)",
+          duration: 0.9,
+          ease: "expo.out",
+          stagger: { each: 0.018, from: "random" },
+          delay,
+          clearProps: "textShadow",
+          scrollTrigger: { trigger: ref.current, start: "top 92%", once: true },
+        },
+      );
     });
     return () => ctx.revert();
   }, [delay]);
@@ -44,7 +55,7 @@ export function Amp({ text, as = "h1", className = "", delay = 0.15 }: { text: s
   );
 }
 
-/** Mechanical tape counter: digits roll like a deck's reel counter, scrubbed by scroll. */
+/** Digital readout whose digits roll up to the value as it scrolls into view, scrubbed by scroll. */
 export function TapeCounter({ to, className = "" }: { to: number; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const cols = String(to).length;
@@ -86,47 +97,45 @@ export function TapeCounter({ to, className = "" }: { to: number; className?: st
   );
 }
 
-/** Analogue VU meter whose needle is driven by how fast you scroll. */
-export function VuMeter({ className = "" }: { className?: string }) {
-  const needle = useRef<SVGGElement>(null);
-  const peak = useRef<SVGCircleElement>(null);
+/** A spectrum analyser driven by how fast you scroll: idle it murmurs, a fast flick lights every band. */
+export function SpectrumBand({ bars = 64, className = "" }: { bars?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (reduced()) return;
-    let lastY = scrollY, level = 0, raf = 0;
-    const loop = () => {
+    const els = Array.from(ref.current!.children) as HTMLElement[];
+    if (reduced()) {
+      els.forEach((b, i) => (b.style.transform = `scaleY(${0.15 + 0.25 * Math.abs(Math.sin(i * 0.4))})`));
+      return;
+    }
+    let lastY = scrollY, energy = 0, raf = 0;
+    const lv = els.map(() => 0.1);
+    const loop = (now: number) => {
       const v = Math.abs(scrollY - lastY);
       lastY = scrollY;
-      // needle ballistics: fast attack, slow fall
-      const target = Math.min(1.08, v / 45);
-      level += (target - level) * (target > level ? 0.25 : 0.04);
-      needle.current!.style.transform = `rotate(${-48 + level * 96}deg)`;
-      peak.current!.style.opacity = level > 0.82 ? "1" : "0.15";
+      // fast attack, slow release, like a real analyser's ballistics
+      const target = Math.min(1, v / 40);
+      energy += (target - energy) * (target > energy ? 0.3 : 0.04);
+      const t = now / 1000;
+      els.forEach((b, i) => {
+        const x = i / els.length;
+        const shape = 0.55 + 0.45 * Math.sin(x * 9 + t * 1.3) * Math.sin(x * 23 - t * 2.1);
+        const want = 0.08 + 0.12 * Math.abs(Math.sin(x * 17 + t * 0.8)) + energy * shape * (1 - x * 0.35);
+        lv[i] += (want - lv[i]) * 0.25;
+        b.style.transform = `scaleY(${Math.min(1, lv[i]).toFixed(3)})`;
+      });
       raf = requestAnimationFrame(loop);
     };
-    loop();
+    raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, []);
-  const ticks = Array.from({ length: 13 }, (_, i) => -48 + i * 8);
+  }, [bars]);
   return (
-    <svg viewBox="0 0 200 120" className={className} role="img" aria-label="VU meter driven by scroll speed">
-      <rect x="2" y="2" width="196" height="116" fill="#f4eedc" stroke="#0c0f2a" strokeWidth="3" />
-      {ticks.map((a, i) => (
-        <line
-          key={a}
-          x1="100" y1="22" x2="100" y2={i % 2 ? 30 : 34}
-          stroke={i > 9 ? "#ff3d2e" : "#0c0f2a"}
-          strokeWidth={i % 2 ? 1.5 : 2.5}
-          transform={`rotate(${a} 100 112)`}
+    <div ref={ref} className={`flex items-end gap-[3px] ${className}`} role="img" aria-label="Spectrum analyser driven by scroll speed">
+      {Array.from({ length: bars }, (_, i) => (
+        <span
+          key={i}
+          className="h-full flex-1 origin-bottom"
+          style={{ background: `linear-gradient(to top, #6bf6ff, ${i / bars > 0.66 ? "#ffb547" : "#b18cff"})`, transform: "scaleY(0.1)" }}
         />
       ))}
-      <text x="20" y="104" fontSize="11" fontFamily="var(--font-read)" fill="#0c0f2a">-20</text>
-      <text x="166" y="104" fontSize="11" fontFamily="var(--font-read)" fill="#ff3d2e">+3</text>
-      <text x="100" y="80" fontSize="13" fontFamily="var(--font-title)" fontWeight="800" textAnchor="middle" fill="#0c0f2a">VU</text>
-      <circle ref={peak} cx="176" cy="20" r="5" fill="#ff3d2e" opacity="0.15" />
-      <g ref={needle} style={{ transformOrigin: "100px 112px", transform: "rotate(-48deg)" }}>
-        <line x1="100" y1="112" x2="100" y2="20" stroke="#0c0f2a" strokeWidth="2" />
-      </g>
-      <circle cx="100" cy="112" r="7" fill="#0c0f2a" />
-    </svg>
+    </div>
   );
 }

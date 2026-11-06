@@ -52,7 +52,7 @@ function Glyph({ seed }: { seed: string }) {
   return (
     <svg width="72" height="24" viewBox="0 0 72 24" aria-hidden="true" className="shrink-0">
       {bars.map((b, i) => (
-        <rect key={i} x={i * 4} y={12 - b / 2} width="3" height={b} fill={i % 4 ? '#0c0f2a' : '#ff3d2e'} />
+        <rect key={i} x={i * 4} y={12 - b / 2} width="3" height={b} fill={i % 4 ? '#5b6b85' : '#6bf6ff'} />
       ))}
     </svg>
   );
@@ -68,11 +68,11 @@ function SignalMeter({ status }: { status: string }) {
           <span
             key={stage}
             title={stage}
-            className={`led !h-3 !w-5 ${i < level ? (status === 'failed' && i === level - 1 ? 'led-on' : '!bg-ink') : '!bg-ink/15'} ${busy && i === level - 1 ? 'led-on animate-pulse' : ''}`}
+            className={`led !h-1.5 !w-6 !rotate-0 ${i < level ? (status === 'failed' && i === level - 1 ? '!bg-rose' : '!bg-cyan') : '!bg-fg/10'} ${busy && i === level - 1 ? 'led-on animate-pulse' : ''}`}
           />
         ))}
       </div>
-      <span className={`font-read text-xs ${status === 'failed' ? 'font-bold text-rec' : 'text-ink/70'}`}>{LABEL[status] ?? status}</span>
+      <span className={`font-read text-xs ${status === 'failed' ? 'font-bold text-rose' : 'text-fg/70'}`}>{LABEL[status] ?? status}</span>
     </div>
   );
 }
@@ -239,19 +239,19 @@ const FilesPage: React.FC = () => {
   return (
     <div className="relative z-10 mx-auto min-h-screen max-w-[90rem] px-4 pb-24 pt-28 sm:px-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <Amp text="Cue sheet." className="title text-[clamp(3.6rem,10vw,9rem)]" />
+        <Amp text="Signal log." className="title text-[clamp(2.2rem,7vw,6.5rem)]" />
         <Link href="/upload" className="key-rec mb-3" data-magnetic>
-          <span className="h-2.5 w-2.5 rounded-full bg-cream" aria-hidden="true" /> Upload
+          <span className="h-2.5 w-2.5 rounded-full bg-void" aria-hidden="true" /> Upload
         </Link>
       </div>
-      <p className="mt-2 max-w-md text-cream/85" data-reveal>Every file you have fed the deck, live as it moves down the signal path, with its transcript once the AI has listened to it.</p>
+      <p className="mt-2 max-w-md text-fg/75" data-reveal>Every file you have given the machine, live as it moves down the signal path, with its transcript once the AI has listened to it.</p>
 
-      {error && <p role="alert" className="mt-6 inline-block bg-ink px-2 py-1 font-read text-xs text-cream">{error}</p>}
+      {error && <p role="alert" className="mt-6 inline-block border border-rose/40 bg-rose/10 px-2 py-1 font-read text-xs text-rose">{error}</p>}
 
       {signedIn === false && (
-        <div className="mt-10 border-2 border-dashed border-cream/40 px-6 py-14 text-center">
-          <p className="title text-4xl text-cream/80">No reel loaded</p>
-          <p className="mt-2 text-sm text-cream/70"><Link href="/signin" className="font-bold text-cream underline underline-offset-4">Sign in</Link> to see your files.</p>
+        <div className="mt-10 border border-dashed border-cyan/30 px-6 py-14 text-center">
+          <p className="title text-2xl text-fg/80">No signal</p>
+          <p className="mt-2 text-sm text-fg/55"><Link href="/signin" className="font-bold text-cream underline underline-offset-4">Sign in</Link> to see your files.</p>
         </div>
       )}
 
@@ -273,12 +273,12 @@ const FilesPage: React.FC = () => {
               {transcribed.map((f) => <option key={f.fileid} value={f.fileid}>{f.filename}</option>)}
             </select>
             <button type="submit" disabled={asking} className="key-rec sm:min-w-[9rem]" data-magnetic>
-              <span className={`h-2.5 w-2.5 rounded-full bg-cream ${asking ? 'animate-pulse' : ''}`} aria-hidden="true" />
+              <span className={`h-2.5 w-2.5 rounded-full bg-void ${asking ? 'animate-pulse' : ''}`} aria-hidden="true" />
               {asking ? 'Listening…' : 'Ask'}
             </button>
           </div>
           {answer && (
-            <div className="mt-5 border-t-2 border-ink/15 pt-4 motion-safe:animate-[rowIn_500ms_cubic-bezier(0.2,0.9,0.3,1)_both]" aria-live="polite">
+            <div className="mt-5 border-t border-fg/10 pt-4 motion-safe:animate-[rowIn_500ms_cubic-bezier(0.2,0.9,0.3,1)_both]" aria-live="polite">
               <p className="whitespace-pre-line text-[15px] leading-relaxed">{answer.text}</p>
               {answer.sources.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -287,7 +287,7 @@ const FilesPage: React.FC = () => {
                       key={`${s.fileid}-${s.start}`}
                       type="button"
                       onClick={() => seek(s.fileid, s.start)}
-                      className="border-2 border-ink px-2 py-1 font-read text-[11px] font-medium transition-colors hover:bg-ink hover:text-cream"
+                      className="border border-cyan/40 px-2 py-1 font-read text-[11px] font-medium transition-colors hover:bg-cyan hover:text-void"
                     >
                       ▶ {s.filename} · {mmss(s.start)}
                     </button>
@@ -321,7 +321,7 @@ const FilesPage: React.FC = () => {
                     <span className="truncate">{file.filename}</span>
                   </span>
                   <span className="flex items-center gap-2">
-                    <span className="border-2 border-ink px-2 py-0.5 font-read text-[11px] font-medium uppercase">{file.destaudioformat}</span>
+                    <span className="border border-cyan/40 px-2 py-0.5 font-read text-[11px] font-medium uppercase">{file.destaudioformat}</span>
                     <span className="font-read text-xs text-ink/70">{file.samplingrate === 'n/a' ? 'original rate' : `${file.samplingrate} Hz`}</span>
                   </span>
                   <SignalMeter status={file.status} />
@@ -333,7 +333,7 @@ const FilesPage: React.FC = () => {
                 </div>
 
                 {expanded && playable && (
-                  <div className="border-t-2 border-ink px-4 pb-5 pt-4 sm:px-5">
+                  <div className="border-t border-cyan/15 px-4 pb-5 pt-4 sm:px-5">
                     <audio ref={bindAudio(file.fileid)} controls preload="none" src={file.fileurl} className="w-full" />
                     <a href={file.fileurl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-read text-xs font-medium text-rec underline-offset-4 hover:underline">
                       Download {file.destaudioformat.toUpperCase()} ↗
@@ -351,7 +351,7 @@ const FilesPage: React.FC = () => {
                                     <button
                                       type="button"
                                       onClick={() => seek(file.fileid, c.start)}
-                                      className="border-2 border-ink px-2 py-1 text-left text-xs transition-colors hover:bg-ink hover:text-cream"
+                                      className="border border-cyan/40 px-2 py-1 text-left text-xs transition-colors hover:bg-cyan hover:text-void"
                                     >
                                       <span className="font-read font-medium text-rec">{mmss(c.start)}</span> {c.title}
                                     </button>
@@ -377,7 +377,7 @@ const FilesPage: React.FC = () => {
                           </ol>
                         )}
 
-                        <div className="mt-6 border-t-2 border-ink/15 pt-4">
+                        <div className="mt-6 border-t border-fg/10 pt-4">
                           <p className="tag">Voice studio · AI-generated voice</p>
                           <p className="mt-1 text-sm text-ink/70">Type a line and hear it in the voice of the speaker in this file.</p>
                           <textarea
@@ -390,7 +390,7 @@ const FilesPage: React.FC = () => {
                           />
                           <p className="mt-1 text-right font-read text-[11px] text-ink/50">{voiceText.length}/300</p>
                           <label className="mt-1 flex items-start gap-2 text-xs leading-snug text-ink/80">
-                            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#ff3d2e]" />
+                            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#6bf6ff]" />
                             <span>This is my voice, or I have the speaker&apos;s permission to clone it. A short sample is sent to Fish Audio to make the clip.</span>
                           </label>
                           <button
@@ -400,12 +400,12 @@ const FilesPage: React.FC = () => {
                             className="key-rec mt-3 !py-2.5"
                             data-magnetic
                           >
-                            <span className={`h-2.5 w-2.5 rounded-full bg-cream ${speaking ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                            <span className={`h-2.5 w-2.5 rounded-full bg-void ${speaking ? 'animate-pulse' : ''}`} aria-hidden="true" />
                             {speaking ? 'Recording…' : 'Generate clip'}
                           </button>
-                          {voiceError && <p role="alert" className="mt-2 font-read text-xs font-medium text-rec">{voiceError}</p>}
+                          {voiceError && <p role="alert" className="mt-2 font-read text-xs font-medium text-rose">{voiceError}</p>}
                           {(clips[file.fileid] ?? []).map((c) => (
-                            <div key={c.url} className="mt-3 border-2 border-ink/20 p-3">
+                            <div key={c.url} className="mt-3 border border-fg/15 p-3">
                               <p className="text-sm">&ldquo;{c.text}&rdquo;</p>
                               <audio controls preload="none" src={c.url} className="mt-2 w-full" />
                               <p className="mt-1 font-read text-[11px] uppercase text-ink/50">AI-generated voice</p>
@@ -413,11 +413,11 @@ const FilesPage: React.FC = () => {
                           ))}
                         </div>
 
-                        <div className="mt-6 border-t-2 border-ink/15 pt-4">
+                        <div className="mt-6 border-t border-fg/10 pt-4">
                           <p className="tag">Dub into another language · AI voice, machine translated</p>
                           <p className="mt-1 text-sm text-ink/70">The first 3 minutes, translated and spoken in this speaker&apos;s voice over the original.</p>
                           <label className="mt-2 flex items-start gap-2 text-xs leading-snug text-ink/80">
-                            <input type="checkbox" checked={dubConsent} onChange={(e) => setDubConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#ff3d2e]" />
+                            <input type="checkbox" checked={dubConsent} onChange={(e) => setDubConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#6bf6ff]" />
                             <span>This is my voice, or I have the speaker&apos;s permission. The transcript goes to Groq for translation and a voice sample to Fish Audio.</span>
                           </label>
                           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -431,24 +431,24 @@ const FilesPage: React.FC = () => {
                               className="key-rec !py-2.5 sm:min-w-[9rem]"
                               data-magnetic
                             >
-                              <span className="h-2.5 w-2.5 rounded-full bg-cream" aria-hidden="true" /> Dub it
+                              <span className="h-2.5 w-2.5 rounded-full bg-void" aria-hidden="true" /> Dub it
                             </button>
                           </div>
-                          {dubError && <p role="alert" className="mt-2 font-read text-xs font-medium text-rec">{dubError}</p>}
+                          {dubError && <p role="alert" className="mt-2 font-read text-xs font-medium text-rose">{dubError}</p>}
                           {(dubs[file.fileid] ?? []).map((d) => {
                             const name = DUB_LANGS.find(([code]) => code === d.language)?.[1] ?? d.language;
                             const busy = d.status !== 'done' && d.status !== 'failed';
                             return (
-                              <div key={d.id} className="mt-3 border-2 border-ink/20 p-3">
+                              <div key={d.id} className="mt-3 border border-fg/15 p-3">
                                 <p className="flex items-center gap-2 text-sm font-bold">
-                                  <span className={`led ${busy ? 'led-on animate-pulse' : d.status === 'done' ? '!bg-ink' : 'led-on'}`} aria-hidden="true" />
+                                  <span className={`led ${busy ? 'led-on animate-pulse' : d.status === 'done' ? '!bg-cyan' : '!bg-rose'}`} aria-hidden="true" />
                                   {name}
-                                  <span className={`font-read text-xs font-normal ${d.status === 'failed' ? 'text-rec' : 'text-ink/60'}`}>· {d.status === 'failed' && d.error ? d.error : DUB_LABEL[d.status] ?? d.status}</span>
+                                  <span className={`font-read text-xs font-normal ${d.status === 'failed' ? 'text-rose' : 'text-fg/60'}`}>· {d.status === 'failed' && d.error ? d.error : DUB_LABEL[d.status] ?? d.status}</span>
                                 </p>
                                 {d.status === 'done' && d.url && (
                                   <>
                                     {d.url.endsWith('.mp4')
-                                      ? <video controls preload="none" src={d.url} className="mt-2 w-full border-2 border-ink" />
+                                      ? <video controls preload="none" src={d.url} className="mt-2 w-full border border-cyan/25" />
                                       : <audio controls preload="none" src={d.url} className="mt-2 w-full" />}
                                     <a href={d.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block font-read text-xs font-medium text-rec underline-offset-4 hover:underline">Download ↗</a>
                                   </>

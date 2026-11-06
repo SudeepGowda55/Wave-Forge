@@ -130,8 +130,8 @@ const DashboardPage = () => {
   return (
     <div className="relative z-10 mx-auto grid min-h-screen max-w-[90rem] gap-10 px-4 pb-24 pt-28 sm:px-8 lg:grid-cols-[1fr_1.15fr] lg:items-start">
       <div className="lg:sticky lg:top-28">
-        <Amp text="Feed the gate." className="title text-[clamp(3.6rem,9vw,8.5rem)]" />
-        <p className="mt-5 max-w-sm text-cream/85" data-reveal>
+        <Amp text="Feed the machine." className="title text-[clamp(1.9rem,4.4vw,4.2rem)]" />
+        <p className="mt-5 max-w-sm text-fg/75" data-reveal>
           It goes to GridFS, joins the file_uploaded queue, and you&apos;ll get an email when the audio is ready.
         </p>
       </div>
@@ -139,11 +139,10 @@ const DashboardPage = () => {
       <div className="plate p-5 sm:p-7" data-reveal>
         {/* the input covers the whole gate, so native drag-and-drop works */}
         <label
-          className={`relative block cursor-pointer border-2 border-ink text-center text-cream transition-colors ${dragging ? 'bg-rec' : 'bg-ink hover:bg-[#151a45]'}`}
+          className={`relative block cursor-pointer border border-dashed border-cyan/40 text-center text-fg transition-colors ${dragging ? 'bg-cyan/15' : 'bg-void/60 hover:bg-cyan/5'}`}
           onDragEnter={() => setDragging(true)}
           onDragLeave={() => setDragging(false)}
         >
-          <div className="sprockets h-3" aria-hidden="true" />
           <input
             type="file"
             onChange={handleFileChange}
@@ -154,7 +153,6 @@ const DashboardPage = () => {
             <p className="title text-4xl">{dragging ? 'Let go.' : 'Drop a video here'}</p>
             <p className="mt-2 text-sm text-cream/75">Drag and drop or <span className="font-bold underline underline-offset-4">browse</span> your files. MP4 works best.</p>
           </div>
-          <div className="sprockets h-3" aria-hidden="true" />
         </label>
 
         {file && (
@@ -165,7 +163,7 @@ const DashboardPage = () => {
             </div>
             {/* upload progress as a segmented level meter */}
             <div
-              className="mt-3 flex h-6 gap-[3px] border-2 border-ink bg-ink p-1"
+              className="mt-3 flex h-6 gap-[3px] border border-cyan/20 bg-void p-1"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
@@ -174,7 +172,7 @@ const DashboardPage = () => {
             >
               {Array.from({ length: SEGMENTS }, (_, i) => {
                 const lit = (i / SEGMENTS) * 100 < progress;
-                return <span key={i} className={`flex-1 transition-colors duration-150 ${lit ? (i > SEGMENTS * 0.85 ? 'bg-cream' : 'bg-rec') : 'bg-cream/10'}`} />;
+                return <span key={i} className={`flex-1 transition-colors duration-150 ${lit ? (i > SEGMENTS * 0.85 ? 'bg-amber' : 'bg-cyan') : 'bg-fg/10'}`} />;
               })}
             </div>
             {isLoading && <p className="mt-2 font-read text-xs text-rec">Uploading... {progress}%</p>}
@@ -187,10 +185,10 @@ const DashboardPage = () => {
             {['mp3', 'wav'].map((t) => (
               <label
                 key={t}
-                className={`key cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-4 has-[:focus-visible]:outline-ink ${fileType === t ? 'translate-y-[5px] bg-ink text-cream !shadow-none' : 'bg-white text-ink'}`}
+                className={`key cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-4 has-[:focus-visible]:outline-cyan ${fileType === t ? 'bg-cyan text-void' : 'key-cream'}`}
               >
                 <input type="radio" name="filetype" value={t} checked={fileType === t} onChange={(e) => setFileType(e.target.value)} className="sr-only" />
-                <span className={`led ${fileType === t ? 'led-on' : '!bg-ink/20'}`} aria-hidden="true" />
+                <span className={`led ${fileType === t ? '!bg-void' : '!bg-fg/25'}`} aria-hidden="true" />
                 {t}
               </label>
             ))}
@@ -203,7 +201,7 @@ const DashboardPage = () => {
             id="samplingrate"
             value={isCustom ? 'custom' : samplingRate}
             onChange={handleSamplingRateChange}
-            className="slot cursor-pointer !bg-ink !text-cream"
+            className="slot cursor-pointer"
           >
             <option value="22400">22400 Hz</option>
             <option value="48000">48000 Hz</option>
@@ -223,13 +221,13 @@ const DashboardPage = () => {
         </div>
 
         <button onClick={handleFileUpload} disabled={isLoading} className="key-rec mt-8 w-full" data-magnetic>
-          <span className="h-2.5 w-2.5 rounded-full bg-cream" aria-hidden="true" />
+          <span className="h-2.5 w-2.5 rounded-full bg-void" aria-hidden="true" />
           {isLoading ? 'Uploading...' : 'Upload'}
         </button>
-        {error && <p role="alert" className="mt-4 font-read text-xs font-medium text-rec">{error}</p>}
+        {error && <p role="alert" className="mt-4 font-read text-xs font-medium text-rose">{error}</p>}
 
         {objectId && (
-          <div className="mt-6 border-2 border-ink bg-white p-5">
+          <div className="mt-6 border border-cyan/30 bg-cyan/5 p-5">
             <p className="font-read text-xs">File Successfully Uploaded with the ObjectID: <span className="break-all font-medium text-rec">{objectId}</span></p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button onClick={handleReupload} className="key-cream">Reupload</button>

@@ -4,8 +4,13 @@
 
 html,
 body {
-  background: #1b2fe0;
-  color: #f4eedc;
+  background: #05060b;
+  color: #e6f1ff;
+}
+
+/* native audio/video controls, selects and scrollbars render in their dark variants */
+html {
+  color-scheme: dark;
 }
 
 body {
@@ -14,7 +19,7 @@ body {
   overflow-x: hidden;
 }
 
-/* film grain + gate vignette, on a fixed pseudo-element (never background-attachment: fixed) */
+/* faint scan lines + edge falloff on a fixed pseudo-element (never background-attachment: fixed) */
 body::before {
   content: "";
   position: fixed;
@@ -22,13 +27,14 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(12, 15, 42, 0.45) 100%),
-    repeating-linear-gradient(90deg, rgba(244, 238, 220, 0.025) 0 1px, transparent 1px 4px);
+    radial-gradient(110% 80% at 50% 0%, rgba(107, 246, 255, 0.07), transparent 60%),
+    radial-gradient(90% 70% at 100% 100%, rgba(177, 140, 255, 0.06), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(230, 241, 255, 0.018) 0 1px, transparent 1px 3px);
 }
 
 ::selection {
-  background: #ff3d2e;
-  color: #f4eedc;
+  background: #6bf6ff;
+  color: #05060b;
 }
 
 html.lenis,
@@ -40,91 +46,119 @@ html.lenis body {
 }
 
 @layer components {
-  /* hardware keys: square, raised, they physically press in */
+  /* chamfered HUD buttons: one corner cut, a light sweep on hover, a sonar ping on press */
   .key {
-    @apply relative inline-flex select-none items-center justify-center gap-2.5 overflow-hidden border-2 border-ink px-6 py-3.5 font-body text-sm font-bold uppercase tracking-wide transition-[transform,box-shadow,background-color] duration-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cream disabled:cursor-not-allowed disabled:opacity-60;
-    box-shadow: 0 5px 0 0 #0c0f2a;
+    @apply relative isolate inline-flex select-none items-center justify-center gap-2.5 overflow-hidden px-6 py-3.5 font-read text-[13px] font-medium uppercase tracking-[0.12em] transition-[background-color,color,box-shadow] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan disabled:cursor-not-allowed disabled:opacity-50;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
   }
-  .key:active:not(:disabled) {
-    transform: translateY(5px);
-    box-shadow: 0 0 0 0 #0c0f2a;
+  .key::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    pointer-events: none;
+  }
+  .key:hover:not(:disabled)::after {
+    transform: translateX(120%);
   }
   .key-rec {
-    @apply key bg-rec text-cream hover:bg-[#ff5446];
+    @apply key bg-cyan text-void hover:bg-[#a5faff];
+    box-shadow: 0 0 24px -6px rgba(107, 246, 255, 0.7);
   }
+  /* outlined key: the clip-path would cut an outline at the chamfers, so the edge is the key's own
+     background and an inset ::before (z -1 inside the isolated key) is the fill */
   .key-cream {
-    @apply key bg-cream text-ink hover:bg-white;
+    @apply key text-fg;
+    background: rgba(230, 241, 255, 0.35);
+  }
+  .key-cream::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    background: #090c15;
+    clip-path: polygon(0 0, calc(100% - 13.6px) 0, 100% 13.6px, 100% 100%, 13.6px 100%, 0 calc(100% - 13.6px));
+    transition: background-color 0.2s;
+  }
+  .key-cream:hover:not(:disabled) {
+    background: rgba(107, 246, 255, 0.7);
+  }
+  .key-cream:hover:not(:disabled)::before {
+    background: #0c1622;
   }
   .led {
-    @apply inline-block h-2 w-2 shrink-0 bg-cream/30;
+    @apply inline-block h-2 w-2 shrink-0 rotate-45 bg-fg/25;
   }
   .led-on {
-    @apply bg-rec;
-    box-shadow: 0 0 10px 2px rgba(255, 61, 46, 0.8);
+    @apply bg-cyan;
+    box-shadow: 0 0 10px 2px rgba(107, 246, 255, 0.75);
   }
-  /* cream faceplate panels on the blue field */
+  /* HUD panel: solid (no blur over the live canvas), hairline edge, lit corner brackets */
   .plate {
-    @apply border-2 border-ink bg-cream text-ink;
-    box-shadow: 8px 8px 0 0 #0c0f2a;
+    @apply relative bg-panel/90 text-fg;
+    box-shadow: inset 0 0 0 1px rgba(107, 246, 255, 0.16), 0 30px 60px -30px rgba(0, 0, 0, 0.8);
+    background-image:
+      linear-gradient(#6bf6ff, #6bf6ff), linear-gradient(#6bf6ff, #6bf6ff), linear-gradient(#6bf6ff, #6bf6ff), linear-gradient(#6bf6ff, #6bf6ff),
+      linear-gradient(#6bf6ff, #6bf6ff), linear-gradient(#6bf6ff, #6bf6ff), linear-gradient(#6bf6ff, #6bf6ff), linear-gradient(#6bf6ff, #6bf6ff);
+    background-repeat: no-repeat;
+    background-size: 14px 1px, 1px 14px, 14px 1px, 1px 14px, 14px 1px, 1px 14px, 14px 1px, 1px 14px;
+    background-position: 0 0, 0 0, 100% 0, 100% 0, 0 100%, 0 100%, 100% 100%, 100% 100%;
   }
   .slot {
-    @apply mt-2 block w-full border-2 border-ink bg-white px-4 py-3 font-read text-sm text-ink placeholder:text-ink/40 focus:bg-[#fffdf6] focus:outline-none focus:ring-4 focus:ring-rec/30;
+    @apply mt-2 block w-full border border-fg/15 bg-void/80 px-4 py-3 font-read text-sm text-fg placeholder:text-fg/30 transition-[border-color,box-shadow] focus:border-cyan/70 focus:outline-none;
+  }
+  .slot:focus {
+    box-shadow: 0 0 0 3px rgba(107, 246, 255, 0.15), 0 0 24px -8px rgba(107, 246, 255, 0.6);
+  }
+  .slot option {
+    background: #0b0f1a;
   }
   .tag {
-    @apply font-read text-[11px] font-medium uppercase text-ink/60;
+    @apply font-read text-[11px] font-medium uppercase tracking-[0.14em] text-cyan/70;
   }
   .title {
-    @apply font-title font-black uppercase leading-[0.86] tracking-[-0.01em];
+    @apply font-title uppercase leading-[0.95] tracking-[-0.02em];
   }
 }
 
-/* amplitude reveal: letters swell from a flat line */
+/* signal-lock headline: letters arrive split into cyan / violet ghosts and lock into place */
 .amp > span > span > span {
   display: inline-block;
-  transform-origin: 50% 55%;
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
-/* press burst: meter bars that spike out of the click point */
-.burst {
+/* sonar ping where a button is pressed */
+.ping {
   position: absolute;
-  width: 3px;
-  height: 14px;
-  margin: -14px 0 0 -1.5px;
-  transform-origin: 50% 100%;
-  background: currentColor;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
   pointer-events: none;
-  animation: burst 520ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  animation: ping 700ms cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
 }
-@keyframes burst {
-  0% {
-    transform: rotate(var(--r)) translateY(-2px) scaleY(0.2);
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(var(--r)) translateY(-22px) scaleY(1);
+@keyframes ping {
+  to {
+    transform: scale(26);
     opacity: 0;
   }
-}
-
-/* sprocket holes along a film edge */
-.sprockets {
-  background-image: radial-gradient(circle at 50% 50%, #1b2fe0 0 3.5px, transparent 4px);
-  background-size: 16px 12px;
 }
 
 @keyframes rowIn {
   from {
     opacity: 0;
-    transform: translateX(-16px);
+    transform: translateY(10px);
   }
 }
 
-/* DAW playhead cursor (fine pointers only; native cursor stays) */
-#playhead {
+/* HUD reticle cursor (fine pointers only; the native cursor stays) */
+#reticle {
   display: none;
 }
-.has-playhead #playhead {
+.has-reticle #reticle {
   display: block;
 }
 

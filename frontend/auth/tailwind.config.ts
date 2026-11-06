@@ -9,17 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // klein = the medium (screen, signal path), cream = picture / paper, rec = sound, ink = structure
-        klein: "#1b2fe0",
-        deep: "#1222a8",
-        cream: "#f4eedc",
-        rec: "#ff3d2e",
-        ink: "#0c0f2a",
-        haze: "rgba(244,238,220,0.62)",
-        rule: "rgba(244,238,220,0.22)",
+        // cyan = sound / signal, violet = the AI listening, amber = a voice speaking / live, rose = something failed
+        void: "#05060b",
+        panel: "#0b0f1a",
+        fg: "#e6f1ff",
+        cyan: "#6bf6ff",
+        violet: "#b18cff",
+        amber: "#ffb547",
+        rose: "#ff5c7a",
+        // older names kept so app pages restyle with the theme: ink/cream are foreground, rec is the signal accent
+        ink: "#e6f1ff",
+        cream: "#e6f1ff",
+        rec: "#6bf6ff",
       },
       fontFamily: {
-        title: ["var(--font-title)", "Impact", "sans-serif"],
+        title: ["var(--font-title)", "system-ui", "sans-serif"],
         body: ["var(--font-body)", "system-ui", "sans-serif"],
         read: ["var(--font-read)", "ui-monospace", "monospace"],
       },

@@ -39,14 +39,14 @@ export default function Demo() {
 
   return (
     <div className="relative z-10 mx-auto min-h-screen max-w-[90rem] px-4 pb-24 pt-28 sm:px-8">
-      <Amp text="Demo reel." className="title text-[clamp(3.6rem,10vw,9rem)]" />
-      <p className="mt-2 max-w-xl text-cream/85" data-reveal>
+      <Amp text="Demo reel." className="title text-[clamp(2.2rem,7vw,6.5rem)]" />
+      <p className="mt-2 max-w-xl text-fg/75" data-reveal>
         Real output from the pipeline, generated ahead of time. Every upload is converted, transcribed, summarised and split into chapters; a line can be spoken in the speaker&apos;s cloned voice, and the whole video dubbed into another language.
       </p>
-      <p className="mt-3 max-w-xl font-read text-xs text-cream/70" data-reveal>The voices here are synthetic text-to-speech voices, not real people.</p>
+      <p className="mt-3 max-w-xl font-read text-xs text-fg/55" data-reveal>The voices here are synthetic text-to-speech voices, not real people.</p>
 
-      {failed && <p role="alert" className="mt-8 inline-block bg-ink px-2 py-1 font-read text-xs text-cream">The demo reel is offline right now. Try again in a minute.</p>}
-      {files && files.length === 0 && <p className="mt-10 text-lg text-cream/85">The demo reel is being prepared.</p>}
+      {failed && <p role="alert" className="mt-8 inline-block border border-rose/40 bg-rose/10 px-2 py-1 font-read text-xs text-rose">The demo reel is offline right now. Try again in a minute.</p>}
+      {files && files.length === 0 && <p className="mt-10 text-lg text-fg/75">The demo reel is being prepared.</p>}
 
       <div className="mt-10 space-y-8">
         {files?.map((f) => (
@@ -62,7 +62,7 @@ export default function Demo() {
                   <ul className="mt-3 flex flex-wrap gap-2" aria-label="Chapters">
                     {f.chapters.map((c) => (
                       <li key={c.start}>
-                        <button type="button" onClick={() => seek(f.fileid, c.start)} className="border-2 border-ink px-2 py-1 text-left text-xs transition-colors hover:bg-ink hover:text-cream">
+                        <button type="button" onClick={() => seek(f.fileid, c.start)} className="border border-cyan/40 px-2 py-1 text-left text-xs transition-colors hover:bg-cyan hover:text-void">
                           <span className="font-read font-medium text-rec">{mmss(c.start)}</span> {c.title}
                         </button>
                       </li>
@@ -87,7 +87,7 @@ export default function Demo() {
             )}
 
             {f.clips.length > 0 && (
-              <section className="mt-6 border-t-2 border-ink/15 pt-4">
+              <section className="mt-6 border-t border-fg/10 pt-4">
                 <p className="tag">Cloned voice · AI-generated</p>
                 {f.clips.map((c) => (
                   <div key={c.url} className="mt-3">
@@ -99,14 +99,14 @@ export default function Demo() {
             )}
 
             {f.dubs.length > 0 && (
-              <section className="mt-6 border-t-2 border-ink/15 pt-4">
+              <section className="mt-6 border-t border-fg/10 pt-4">
                 <p className="tag">Dubbed · AI voice, machine translated</p>
                 <div className="mt-3 grid gap-4 md:grid-cols-2">
                   {f.dubs.map((d) => (
                     <div key={d.id}>
                       <p className="text-sm font-bold">{DUB_LANGS.find(([code]) => code === d.language)?.[1] ?? d.language}</p>
                       {d.url.endsWith('.mp4')
-                        ? <video controls preload="none" src={d.url} className="mt-1 w-full border-2 border-ink" />
+                        ? <video controls preload="none" src={d.url} className="mt-1 w-full border border-cyan/25" />
                         : <audio controls preload="none" src={d.url} className="mt-1 w-full" />}
                     </div>
                   ))}
