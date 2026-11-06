@@ -392,7 +392,11 @@ const FilesPage: React.FC = () => {
                         <div className="mt-6 border-t-2 border-ink/15 pt-4">
                           <p className="tag">Dub into another language · AI voice, machine translated</p>
                           <p className="mt-1 text-sm text-ink/70">The first 3 minutes, translated and spoken in this speaker&apos;s voice over the original.</p>
-                          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end">
+                          <label className="mt-2 flex items-start gap-2 text-xs leading-snug text-ink/80">
+                            <input type="checkbox" checked={dubConsent} onChange={(e) => setDubConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#ff3d2e]" />
+                            <span>This is my voice, or I have the speaker&apos;s permission. The transcript goes to Groq for translation and a voice sample to Fish Audio.</span>
+                          </label>
+                          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
                             <select aria-label="Dub language" value={dubLang} onChange={(e) => setDubLang(e.target.value)} className="slot sm:max-w-[14rem]">
                               {DUB_LANGS.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
                             </select>
@@ -406,10 +410,6 @@ const FilesPage: React.FC = () => {
                               <span className="h-2.5 w-2.5 rounded-full bg-cream" aria-hidden="true" /> Dub it
                             </button>
                           </div>
-                          <label className="mt-3 flex items-start gap-2 text-xs leading-snug text-ink/80">
-                            <input type="checkbox" checked={dubConsent} onChange={(e) => setDubConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#ff3d2e]" />
-                            <span>This is my voice, or I have the speaker&apos;s permission. The transcript goes to Groq for translation and a voice sample to Fish Audio.</span>
-                          </label>
                           {dubError && <p role="alert" className="mt-2 font-read text-xs font-medium text-rec">{dubError}</p>}
                           {(dubs[file.fileid] ?? []).map((d) => {
                             const name = DUB_LANGS.find(([code]) => code === d.language)?.[1] ?? d.language;
