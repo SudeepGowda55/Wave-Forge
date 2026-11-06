@@ -148,12 +148,18 @@ class Handler(BaseHTTPRequestHandler):
         live.delete_voice(usermail)
         self.reply(200, {"exists": False})
 
-    def reply_audio(self, audio):
+    def stream_audio(self, upstream):
+        # no Content-Length: the gateway and Caddy then flush every chunk instead of buffering the clip
         self.send_response(200)
         self.send_header("Content-Type", "audio/mpeg")
-        self.send_header("Content-Length", str(len(audio)))
+        self.send_header("Cache-Control", "no-store")
         self.end_headers()
-        self.wfile.write(audio)
+        try:
+            for chunk in upstream.iter_content(4096):
+                self.wfile.write(chunk)
+                self.wfile.flush()
+        finally:
+            upstream.close()
 
     def do_live(self, usermail):
         """Live mode: raw audio bodies for recordings, JSON for everything else."""
@@ -174,9 +180,9 @@ class Handler(BaseHTTPRequestHandler):
                 if not text:
                     return self.reply(400, "Nothing to say.")
                 if self.path == "/ai/live/speak":
-                    audio = live.speak(usermail, text, data.get("voice") == "mine")
+                    upstream = live.speak(usermail, text, data.get("voice") == "mine")
                     db.record_usage(usermail, "live")
-                    return self.reply_audio(audio)
+                    return self.stream_audio(upstream)
                 if self.path == "/ai/live/translate":
                     result = live.translate(text, str(data.get("lang", "")))
                 elif self.path == "/ai/live/reply":

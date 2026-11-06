@@ -56,6 +56,25 @@ def fish_tts(text, sample_path, sample_text, latency="normal"):
     return r.content
 
 
+def fish_stream(text, sample_path=None, sample_text=None, latency="low"):
+    """Open a streaming TTS response (cloned when a sample is given, Fish's default voice otherwise)."""
+    body = {"text": text, "format": "mp3", "latency": latency}
+    if sample_path:
+        body["references"] = [{"audio": open(sample_path, "rb").read(), "text": sample_text}]
+    r = requests.post(
+        "https://api.fish.audio/v1/tts",
+        data=ormsgpack.packb(body),
+        headers={"Authorization": f"Bearer {os.environ['FISH_API_KEY']}", "Content-Type": "application/msgpack", "model": FISH_MODEL},
+        timeout=120,
+        stream=True,
+    )
+    if r.status_code in (402, 429) or r.status_code >= 500:
+        r.close()
+        raise QuotaError(f"fish {r.status_code}")
+    r.raise_for_status()
+    return r
+
+
 def speak(usermail, fileid, text):
     """Say `text` in the voice of the speaker in `fileid`; returns the clip URL (cached per file + text)."""
     with db.connect() as conn:

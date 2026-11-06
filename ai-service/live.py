@@ -10,10 +10,14 @@ EXT = {"audio/webm": "webm", "audio/ogg": "ogg", "audio/mp4": "m4a", "audio/mpeg
 
 _samples = {}  # usermail -> (sample_url, local wav path), so each line doesn't re-download the sample
 
+TALK_MODELS = os.environ.get("TALK_MODELS", "qwen/qwen3.8-27b,openai/gpt-oss-20b").split(",")
+
 TALK_SYSTEM = (
     "You are WaveForge, a friendly voice assistant built into an app that converts videos to audio, transcribes them, "
     "answers questions about them, clones voices with consent, and dubs videos into other languages. "
-    "Your reply will be spoken aloud: answer in one to three short sentences of plain text, no lists, no Markdown, no emoji."
+    "Be warm and conversational and happy to chat about anything. If a question needs live information you don't have, "
+    "such as schedules, news or weather, say so in one short sentence and suggest where to check. "
+    "Your reply will be spoken aloud: one to three short sentences of plain text, no lists, no Markdown, no emoji."
 )
 
 
@@ -107,21 +111,11 @@ def _sample(usermail):
 
 
 def speak(usermail, text, mine):
+    """An open streaming response; the handler relays its chunks so playback starts within about a second."""
     if mine:
         path, sample_text = _sample(usermail)
-        # "low" starts audio ~2 s sooner on the free model (measured); studio clips and dubs keep "normal"
-        return voice.fish_tts(text, path, sample_text, latency="low")
-    # the machine's own voice: Fish's default speaker, no reference sample
-    r = requests.post(
-        "https://api.fish.audio/v1/tts",
-        json={"text": text, "format": "mp3", "latency": "low"},
-        headers={"Authorization": f"Bearer {os.environ['FISH_API_KEY']}", "model": voice.FISH_MODEL},
-        timeout=120,
-    )
-    if r.status_code in (402, 429) or r.status_code >= 500:
-        raise QuotaError(f"fish {r.status_code}")
-    r.raise_for_status()
-    return r.content
+        return voice.fish_stream(text, path, sample_text)
+    return voice.fish_stream(text)  # the machine's own voice: Fish's default speaker
 
 
 def translate(text, lang):
@@ -134,4 +128,5 @@ def translate(text, lang):
 def reply(history, text):
     turns = [f"{'User' if h.get('role') == 'user' else 'WaveForge'}: {str(h.get('text', ''))[:500]}" for h in history[-8:]]
     prompt = "\n".join(turns + [f"User: {text}", "WaveForge:"])
-    return {"text": llm.complete(TALK_SYSTEM, prompt).replace("**", "").strip()}
+    # Qwen answers in ~0.2 s vs ~0.5 s and chats well, but translates worse, so it is used for replies only (measured)
+    return {"text": llm.complete(TALK_SYSTEM, prompt, models=TALK_MODELS).replace("**", "").strip()}

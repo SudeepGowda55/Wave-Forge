@@ -134,9 +134,34 @@ export default function Live() {
     player.current.src = url;
     player.current.play().catch(() => {});
   };
-  const speak = async (text: string, mine: boolean) => {
+  /** Plays speech as it streams in (Media Source Extensions) and returns a blob URL for replays. */
+  const speak = async (text: string, mine: boolean, onFirstSound?: () => void) => {
     const r = await postJson('/ai/live/speak', { text, voice: mine ? 'mine' : 'machine' });
-    return URL.createObjectURL(await r.blob());
+    const audio = player.current!;
+    audio.addEventListener('playing', () => onFirstSound?.(), { once: true });
+    if (!r.body || typeof MediaSource === 'undefined' || !MediaSource.isTypeSupported('audio/mpeg')) {
+      const url = URL.createObjectURL(await r.blob()); // e.g. iOS Safari: wait for the whole clip
+      play(url);
+      return url;
+    }
+    const source = new MediaSource();
+    audio.src = URL.createObjectURL(source);
+    await new Promise((res) => source.addEventListener('sourceopen', res, { once: true }));
+    const buffer = source.addSourceBuffer('audio/mpeg');
+    const settled = () => (buffer.updating ? new Promise((res) => buffer.addEventListener('updateend', res, { once: true })) : Promise.resolve());
+    const reader = r.body.getReader();
+    const parts: Uint8Array[] = [];
+    for (let first = true; ; first = false) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      parts.push(value);
+      await settled();
+      buffer.appendBuffer(value);
+      if (first) audio.play().catch(() => {});
+    }
+    await settled();
+    source.endOfStream();
+    return URL.createObjectURL(new Blob(parts, { type: 'audio/mpeg' }));
   };
 
   // one button records for every mode: press to start, press again to stop and send
@@ -179,19 +204,20 @@ export default function Live() {
         const said = (await (await postJson('/ai/live/translate', { text: heard, lang })).json()).text as string;
         const t2 = performance.now();
         setBusy('Speaking in your voice…');
-        const audio = await speak(said, true);
-        const t3 = performance.now();
-        setInterp({ heard, said, audio, timing: `heard ${ms(t1 - t0)} · translated ${ms(t2 - t1)} · voiced ${ms(t3 - t2)} · total ${ms(t3 - t0)}` });
-        play(audio);
+        let t3 = 0;
+        setInterp({ heard, said, audio: '', timing: '' });
+        const audio = await speak(said, true, () => { t3 = performance.now(); });
+        t3 = t3 || performance.now();
+        setInterp({ heard, said, audio, timing: `heard ${ms(t1 - t0)} · translated ${ms(t2 - t1)} · first sound ${ms(t3 - t2)} · total ${ms(t3 - t0)}` });
       } else {
         setTurns((ts) => [...ts, { role: 'user', text: heard }]);
         setBusy('Thinking…');
         const history = turns.map(({ role, text }) => ({ role, text }));
         const answer = (await (await postJson('/ai/live/reply', { history, text: heard })).json()).text as string;
         setBusy('Speaking…');
+        setTurns((ts) => [...ts, { role: 'assistant', text: answer }]);
         const audio = await speak(answer, talkVoice === 'mine');
-        setTurns((ts) => [...ts, { role: 'assistant', text: answer, audio }]);
-        play(audio);
+        setTurns((ts) => ts.map((t, i) => (i === ts.length - 1 ? { ...t, audio } : t)));
       }
     } catch (e) {
       fail(e);
@@ -209,7 +235,6 @@ export default function Live() {
       const audio = await speak(typed.trim(), true);
       setLines((l) => [{ text: typed.trim(), audio }, ...l].slice(0, 6));
       setTyped('');
-      play(audio);
     } catch (e) {
       fail(e);
     } finally {
@@ -335,7 +360,7 @@ export default function Live() {
                     <p className="text-sm text-fg/60">You said: <span className="text-fg">{interp.heard}</span></p>
                     <p className="text-lg text-cyan">{interp.said}</p>
                     <div className="flex flex-wrap items-center gap-4">
-                      <button type="button" onClick={() => play(interp.audio)} className="font-read text-xs text-cyan hover:underline">▶ play again</button>
+                      {interp.audio && <button type="button" onClick={() => play(interp.audio)} className="font-read text-xs text-cyan hover:underline">▶ play again</button>}
                       <p className="font-read text-[11px] text-fg/45">{interp.timing}</p>
                     </div>
                   </div>

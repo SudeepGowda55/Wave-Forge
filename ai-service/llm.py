@@ -14,9 +14,9 @@ def groq_headers():
     return {"Authorization": f"Bearer {os.environ['GROQ_API_KEY']}"}
 
 
-def complete(system, prompt, json_mode=False):
+def complete(system, prompt, json_mode=False, models=None):
     last_error = None
-    for model in MODELS:
+    for model in models or MODELS:
         r = requests.post(
             f"{GROQ_URL}/chat/completions",
             headers=groq_headers(),
