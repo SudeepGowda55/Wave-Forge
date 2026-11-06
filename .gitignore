@@ -8,6 +8,7 @@ converter-service/.env
 gateway-service/.env
 notification_service/node_modules
 notification_service/.env
-secrets-yaml__pycache__
+secrets-yaml
+__pycache__
 frontend/auth/.env.local
 ai-service/.env
