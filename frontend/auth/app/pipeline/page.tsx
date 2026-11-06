@@ -87,7 +87,7 @@ export default function Pipeline() {
       <div className="mx-auto max-w-[90rem] px-4 sm:px-8">
         <Amp text="Six hops. One email." className="title text-[clamp(3.6rem,11vw,11rem)]" />
         <p className="mt-6 max-w-xl text-lg text-cream/85" data-reveal>
-          WaveForge runs as four microservices across two Kubernetes clusters, talking over HTTP and RabbitMQ. Scroll to run one file through the deck.
+          WaveForge runs as four microservices in Docker containers, talking over HTTP and RabbitMQ. Scroll to run one file through the deck.
         </p>
       </div>
 

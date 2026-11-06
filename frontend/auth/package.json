@@ -9,12 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^5.0.8",
     "axios": "^1.7.2",
     "gsap": "3.12.5",
     "lenis": "1.1.13",
     "next": "14.2.3",
-    "next-auth": "^4.24.7",
     "react": "^18",
     "react-dom": "^18",
     "three": "0.169.0"

@@ -1,8 +1,9 @@
 export const SITE = {
   name: "WaveForge",
   url: "https://waveforge.sudeepgowda.tech",
+  api: process.env.NEXT_PUBLIC_API_URL,
   repo: "https://github.com/SudeepGowda55/Wave-Forge",
-  pitch: "Upload a video and get back clean MP3 or WAV audio at the sampling rate you choose, converted by four microservices on Kubernetes and emailed to you.",
+  pitch: "Upload a video and get back clean MP3 or WAV audio at the sampling rate you choose, converted by four microservices in Docker and emailed to you.",
 };
 
 export const OG_IMAGE = { url: "/og.png", width: 1200, height: 627 };

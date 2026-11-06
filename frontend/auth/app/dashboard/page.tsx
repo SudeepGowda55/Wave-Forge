@@ -4,6 +4,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Amp } from '@/components/Motion';
+import { SITE } from '@/lib/site';
 
 interface FileData {
   fileid: string;
@@ -49,9 +50,9 @@ const FilesPage: React.FC = () => {
     setError('');
 
     try {
-      const response = await axios.post('https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/getfiles', null, {
+      const response = await axios.post(`${SITE.api}/getfiles`, null, {
         headers: {
-          'usermail': usermail,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
@@ -64,6 +65,11 @@ const FilesPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching files:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        localStorage.clear();
+        setError('Your session expired. Sign up again.');
+        return;
+      }
       setError('Could not fetch files. Is the gateway up?');
     } finally {
       setIsLoading(false);

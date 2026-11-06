@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Amp } from '@/components/Motion';
+import { SITE } from '@/lib/site';
 
 const SEGMENTS = 40;
 
@@ -79,14 +80,14 @@ const DashboardPage = () => {
     const formData = new FormData();
     formData.append('firstname', firstname)
     formData.append('sourcefile', file);
-    formData.append('usermail', usermail); // Use email from local storage
     formData.append('destaudioformat', fileType); // Use selected file type
     formData.append('samplingrate', samplingRate); // Use selected sampling rate
 
     try {
-      const response = await axios.post('https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/upload', formData, {
+      const response = await axios.post(`${SITE.api}/upload`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // the gateway takes the email from the token
         },
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) { // Ensure total is not undefined
@@ -105,6 +106,11 @@ const DashboardPage = () => {
       }
     } catch (error) {
       console.error('Error uploading file:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        localStorage.clear();
+        setError('Your session expired. Sign up again.');
+        return;
+      }
       setError('Upload failed. Try again.');
     } finally {
       setIsLoading(false);

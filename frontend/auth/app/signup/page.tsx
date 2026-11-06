@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Amp } from '@/components/Motion';
+import { SITE } from '@/lib/site';
 
 const Film = dynamic(() => import('@/components/Film'), { ssr: false });
 
@@ -13,7 +14,6 @@ const SignupPage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
   const [jwtToken, setJwtToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,7 @@ const SignupPage: React.FC = () => {
     setIsLoading(true);
     setError('');
     try {
-      const response = await fetch('https://endless-cassy-sudeep-project-a4da03fb.koyeb.app/signup', {
+      const response = await fetch(`${SITE.api}/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,6 @@ const SignupPage: React.FC = () => {
     { id: 'firstName', label: 'First name', type: 'text', value: firstName, set: setFirstName, auto: 'given-name' },
     { id: 'username', label: 'Username', type: 'text', value: username, set: setUsername, auto: 'username' },
     { id: 'email', label: 'Email', type: 'email', value: email, set: setEmail, auto: 'email' },
-    { id: 'password', label: 'Password', type: 'password', value: password, set: setPassword, auto: 'new-password' },
   ];
 
   return (
