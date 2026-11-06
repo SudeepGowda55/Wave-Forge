@@ -29,6 +29,15 @@ CREATE TABLE IF NOT EXISTS transcript_segments (
 CREATE INDEX IF NOT EXISTS transcript_segments_tsv ON transcript_segments USING gin (tsv);
 CREATE INDEX IF NOT EXISTS transcript_segments_file ON transcript_segments (fileid, start_s);
 
+-- owned by ai-service: cloned-voice clips, made only with the user's consent
+CREATE TABLE IF NOT EXISTS voice_clips (
+    usermail   text,
+    fileid     text,
+    text       text,
+    url        text,
+    created_at timestamptz DEFAULT now()
+);
+
 -- per-user daily caps that keep the free tiers from being exhausted
 CREATE TABLE IF NOT EXISTS ai_usage (
     usermail   text,

@@ -17,6 +17,7 @@ interface FileData {
 
 interface Segment { start: number; end: number; text: string }
 interface Source { fileid: string; filename: string; start: number; text: string }
+interface Clip { text: string; url: string }
 
 const PENDING = ['queued', 'converting', 'converted', 'transcribing'];
 // how far along the signal path each status is: upload, convert, transcribe, ready
@@ -80,6 +81,11 @@ const FilesPage: React.FC = () => {
   const [scope, setScope] = useState<string>('');
   const [asking, setAsking] = useState(false);
   const [answer, setAnswer] = useState<{ text: string; sources: Source[] } | null>(null);
+  const [clips, setClips] = useState<Record<string, Clip[]>>({});
+  const [voiceText, setVoiceText] = useState('');
+  const [consent, setConsent] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [voiceError, setVoiceError] = useState('');
   const audios = useRef<Record<string, HTMLAudioElement | null>>({});
   const pendingSeek = useRef<{ fileid: string; t: number } | null>(null);
   const pollUntil = useRef(0);
@@ -116,6 +122,12 @@ const FilesPage: React.FC = () => {
   const toggle = async (fileid: string) => {
     const next = open === fileid ? null : fileid;
     setOpen(next);
+    setVoiceError('');
+    if (next && !clips[next]) {
+      axios.get(`${SITE.api}/ai/voice/${next}`, { headers: auth() })
+        .then((r) => setClips((c) => ({ ...c, [next]: r.data })))
+        .catch(() => {});
+    }
     if (next && !transcripts[next]) {
       try {
         const r = await axios.get(`${SITE.api}/ai/transcript/${next}`, { headers: auth() });
@@ -162,6 +174,21 @@ const FilesPage: React.FC = () => {
       setAnswer({ text: msg, sources: [] });
     } finally {
       setAsking(false);
+    }
+  };
+
+  const speak = async (fileid: string) => {
+    setSpeaking(true);
+    setVoiceError('');
+    try {
+      const r = await axios.post(`${SITE.api}/ai/voice`, { fileid, text: voiceText, consent }, { headers: auth() });
+      setClips((c) => ({ ...c, [fileid]: [r.data, ...(c[fileid] ?? []).filter((x) => x.url !== r.data.url)] }));
+      setVoiceText('');
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) return sessionExpired();
+      setVoiceError(axios.isAxiosError(error) && typeof error.response?.data === 'string' ? error.response.data : 'Could not make the clip. Try again.');
+    } finally {
+      setSpeaking(false);
     }
   };
 
@@ -286,6 +313,42 @@ const FilesPage: React.FC = () => {
                             ))}
                           </ol>
                         )}
+
+                        <div className="mt-6 border-t-2 border-ink/15 pt-4">
+                          <p className="tag">Voice studio · AI-generated voice</p>
+                          <p className="mt-1 text-sm text-ink/70">Type a line and hear it in the voice of the speaker in this file.</p>
+                          <textarea
+                            aria-label="Text to speak"
+                            className="slot min-h-[5rem] resize-y"
+                            maxLength={300}
+                            value={voiceText}
+                            onChange={(e) => setVoiceText(e.target.value)}
+                            placeholder="Hi team, quick update: the demo is ready."
+                          />
+                          <p className="mt-1 text-right font-read text-[11px] text-ink/50">{voiceText.length}/300</p>
+                          <label className="mt-1 flex items-start gap-2 text-xs leading-snug text-ink/80">
+                            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#ff3d2e]" />
+                            <span>This is my voice, or I have the speaker&apos;s permission to clone it. A short sample is sent to Fish Audio to make the clip.</span>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => speak(file.fileid)}
+                            disabled={speaking || !consent || !voiceText.trim()}
+                            className="key-rec mt-3 !py-2.5"
+                            data-magnetic
+                          >
+                            <span className={`h-2.5 w-2.5 rounded-full bg-cream ${speaking ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                            {speaking ? 'Recording…' : 'Generate clip'}
+                          </button>
+                          {voiceError && <p role="alert" className="mt-2 font-read text-xs font-medium text-rec">{voiceError}</p>}
+                          {(clips[file.fileid] ?? []).map((c) => (
+                            <div key={c.url} className="mt-3 border-2 border-ink/20 p-3">
+                              <p className="text-sm">&ldquo;{c.text}&rdquo;</p>
+                              <audio controls preload="none" src={c.url} className="mt-2 w-full" />
+                              <p className="mt-1 font-read text-[11px] uppercase text-ink/50">AI-generated voice</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

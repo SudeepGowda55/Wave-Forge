@@ -4,11 +4,12 @@ import dotenv, pika, requests
 
 dotenv.load_dotenv()
 
-import ask, db, llm, transcribe  # noqa: E402  (after .env is loaded)
+import ask, db, llm, transcribe, voice  # noqa: E402  (after .env is loaded)
 
 AUTH = os.environ.get("AUTH_SERVICE_URL", "http://localhost:8001")
 TRANSCRIBE_PER_DAY = int(os.environ.get("TRANSCRIBE_PER_DAY", "10"))
 ASK_PER_DAY = int(os.environ.get("ASK_PER_DAY", "30"))
+VOICE_PER_DAY = int(os.environ.get("VOICE_PER_DAY", "5"))
 
 
 def set_status(fileid, status):
@@ -67,16 +68,19 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health":
             return self.reply(200, "ok")
-        if not self.path.startswith("/ai/transcript/"):
-            return self.reply(404, "not found")
         usermail = self.user()
-        if usermail:
-            fileid = self.path.rsplit("/", 1)[1]
+        if not usermail:
+            return
+        fileid = self.path.rsplit("/", 1)[1]
+        if self.path.startswith("/ai/transcript/"):
             rows = ask.file_transcript(usermail, fileid)
-            self.reply(200, [{"start": s, "end": e, "text": t} for s, e, t in rows])
+            return self.reply(200, [{"start": s, "end": e, "text": t} for s, e, t in rows])
+        if self.path.startswith("/ai/voice/"):
+            return self.reply(200, voice.clips(usermail, fileid))
+        self.reply(404, "not found")
 
     def do_POST(self):
-        if self.path != "/ai/ask":
+        if self.path not in ("/ai/ask", "/ai/voice"):
             return self.reply(404, "not found")
         usermail = self.user()
         if not usermail:
@@ -85,6 +89,8 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
         except json.JSONDecodeError:
             return self.reply(400, "invalid JSON")
+        if self.path == "/ai/voice":
+            return self.make_voice(usermail, data)
         question = str(data.get("question", "")).strip()[:500]
         if not question:
             return self.reply(400, "question is required")
@@ -96,6 +102,24 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(429, "The free AI limit is reached right now. Try again in a minute.")
         db.record_usage(usermail, "ask")
         self.reply(200, result)
+
+    def make_voice(self, usermail, data):
+        text = str(data.get("text", "")).strip()
+        if data.get("consent") is not True:
+            return self.reply(400, "Confirm that this is your voice or that you have the speaker's permission.")
+        if not text or len(text) > 300:
+            return self.reply(400, "Write between 1 and 300 characters.")
+        if db.used_today(usermail, "voice") >= VOICE_PER_DAY:
+            return self.reply(429, f"Daily limit of {VOICE_PER_DAY} voice clips reached. Try again tomorrow.")
+        try:
+            url, cached = voice.speak(usermail, str(data.get("fileid", "")), text)
+        except voice.VoiceError as e:
+            return self.reply(400, str(e))
+        except llm.QuotaError:
+            return self.reply(429, "The free voice limit is reached right now. Try again later.")
+        if not cached:
+            db.record_usage(usermail, "voice")
+        self.reply(200, {"url": url, "text": text})
 
 
 if __name__ == "__main__":
