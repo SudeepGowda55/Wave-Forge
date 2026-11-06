@@ -11,7 +11,7 @@ const mailgunClient = mg.client({ username: "api", key: process.env.MAILGUN_API_
 async function sendMail(message) {
     try {
         const response = await mailgunClient.messages.create(process.env.MAILGUN_DOMAIN_NAME, {
-            from: `WaveForge <postmaster@${process.env.MAILGUN_DOMAIN_NAME}>`,
+            from: `WaveForge <hai@${process.env.MAILGUN_DOMAIN_NAME}>`,
             to: [message.usermail],
             subject: "Audio Conversion Successful!",
             text: `Your File ${message.filename} has been successfully converted ${message.username}! You can download it using this File URL ${message.fileurl} or by Login into your account`,
