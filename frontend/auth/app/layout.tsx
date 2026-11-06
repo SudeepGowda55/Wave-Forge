@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Kode_Mono, Manrope, Michroma } from "next/font/google";
+import localFont from "next/font/local";
 import Shell from "@/components/Shell";
 import { OG_IMAGE, SITE } from "@/lib/site";
 import "./globals.css";
 
-const title = Michroma({ subsets: ["latin"], variable: "--font-title", weight: "400" });
-const body = Manrope({ subsets: ["latin"], variable: "--font-body", weight: ["400", "500", "700"] });
-const read = Kode_Mono({ subsets: ["latin"], variable: "--font-read", weight: ["400", "500"] });
+// self-hosted (SIL OFL, latin subset) so builds never depend on fetching fonts from Google at build time
+const title = localFont({ src: "./fonts/michroma.woff2", variable: "--font-title", weight: "400", display: "swap" });
+const body = localFont({ src: "./fonts/manrope.woff2", variable: "--font-body", weight: "200 800", display: "swap" });
+const read = localFont({ src: "./fonts/kode-mono.woff2", variable: "--font-read", weight: "400 700", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
