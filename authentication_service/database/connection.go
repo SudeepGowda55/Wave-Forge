@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -28,6 +29,8 @@ func ConnectToDatabase() {
 		fmt.Println("There is an error while connecting to the database ", errSql)
 		panic(errSql)
 	} else {
+		// drop idle connections before Neon's pooler closes them, so a stale one is never reused
+		db.SetConnMaxIdleTime(time.Minute)
 		Db = db
 		fmt.Println("Successfully connected to Postrgesql database!")
 	}

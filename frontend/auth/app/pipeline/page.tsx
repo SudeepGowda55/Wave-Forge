@@ -12,42 +12,46 @@ const NODES = [
   {
     name: "You",
     tech: "Next.js frontend",
-    body: "Signs you up, then POSTs the video as multipart form data with your email, target format and sampling rate.",
-    meta: ["POST /signup", "POST /upload", "POST /getfiles"],
+    body: "Sign in with a password, then POST the video with your JWT, the target format and the sampling rate.",
+    meta: ["POST /login", "POST /upload", "POST /ai/ask"],
   },
   {
     name: "Gateway",
     tech: "Go · Gin · :8000",
-    body: "The only public entry point. Stores the upload in MongoDB GridFS and publishes a message to the file_uploaded queue.",
-    meta: ["sudeepgowda55/gateway-service", "/validatejwt", "/updatefileurl"],
+    body: "The only public entry point. Checks your JWT with the auth service, stores the upload in MongoDB GridFS and publishes a message to the file_uploaded queue.",
+    meta: ["JWT check", "GridFS", "/ai/* proxy"],
   },
   {
     name: "Auth",
     tech: "Go · PostgreSQL · :8001",
-    body: "Handles signup, issues and validates JWTs, and keeps each user's file records.",
-    meta: ["sudeepgowda55/auth-service", "/getfiles"],
+    body: "Hashes passwords with bcrypt, issues and validates JWTs, and keeps each file's record and live status.",
+    meta: ["bcrypt", "/login", "/updatestatus"],
   },
   {
     name: "RabbitMQ",
     tech: "message broker",
-    body: "Decouples the slow work. Uploads return immediately; conversions and emails happen when consumers are ready.",
-    meta: ["file_uploaded", "file_converted_notification"],
+    body: "Decouples the slow work. Uploads return immediately, and a fanout exchange hands every converted file to both the AI service and the notifier.",
+    meta: ["file_uploaded", "file_converted (fanout)"],
   },
   {
     name: "Converter",
-    tech: "Python · pydub",
-    body: "Consumes file_uploaded, pulls the video from GridFS, exports MP3 or WAV, re-samples if asked, uploads to Cloudinary and reports the URL back to the gateway.",
-    meta: ["sudeepgowda55/converter-service", "Cloudinary"],
+    tech: "Python · pydub · ffmpeg",
+    body: "Consumes file_uploaded, pulls the video from GridFS, exports MP3 or WAV, re-samples if asked, uploads to Cloudinary and reports the URL and status to the auth service.",
+    meta: ["file_uploaded", "Cloudinary"],
+  },
+  {
+    name: "AI",
+    tech: "Python · Groq Whisper · gpt-oss",
+    body: "Takes its copy of each converted file, transcribes the first ten minutes into Postgres full-text search, and answers your questions with timestamped sources.",
+    meta: ["file_converted_ai", "/ai/ask", "/ai/transcript"],
   },
   {
     name: "Notification",
     tech: "Node.js · amqplib · Mailgun",
-    body: "Consumes file_converted_notification and emails you the download link.",
-    meta: ["sudeepgowda55/notification-service", "Mailgun"],
+    body: "Takes its copy of each converted file and emails you the download link.",
+    meta: ["file_converted_notification", "Mailgun"],
   },
 ];
-
-const ORDER = ["Authentication service", "Gateway service", "Converter service", "Notification service"];
 
 export default function Pipeline() {
   const pin = useRef<HTMLDivElement>(null);
@@ -85,9 +89,9 @@ export default function Pipeline() {
   return (
     <div className="relative z-10 pt-28">
       <div className="mx-auto max-w-[90rem] px-4 sm:px-8">
-        <Amp text="Six hops. One email." className="title text-[clamp(3.6rem,11vw,11rem)]" />
+        <Amp text="Seven hops. One email." className="title text-[clamp(3.6rem,11vw,11rem)]" />
         <p className="mt-6 max-w-xl text-lg text-cream/85" data-reveal>
-          WaveForge runs as four microservices in Docker containers, talking over HTTP and RabbitMQ. Scroll to run one file through the deck.
+          WaveForge runs as five microservices in Docker containers, talking over HTTP and RabbitMQ. Scroll to run one file through the deck.
         </p>
       </div>
 
@@ -125,19 +129,7 @@ export default function Pipeline() {
       </div>
 
       <section className="mx-auto max-w-[90rem] px-4 pb-28 pt-8 sm:px-8">
-        <Amp as="h2" text="Cue them in this order." className="title text-[clamp(3rem,7vw,6rem)]" />
-        <p className="mt-4 max-w-xl text-cream/85" data-reveal>
-          After the auth service starts, put its IP in the gateway config. Changing the order changes the IP addressing and the services stop finding each other.
-        </p>
-        <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {ORDER.map((o, i) => (
-            <li key={o} className="plate flex items-center gap-4 p-5" data-reveal>
-              <span className="title text-6xl text-rec">{i + 1}</span>
-              <span className="font-bold leading-tight">{o}</span>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-14 flex flex-wrap gap-3" data-reveal>
+        <div className="flex flex-wrap gap-3" data-reveal>
           <Link href="/upload" className="key-rec" data-magnetic>Try it with a video</Link>
           <Link href="/" className="key-cream" data-magnetic>Back to the story</Link>
         </div>

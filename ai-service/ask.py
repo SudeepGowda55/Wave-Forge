@@ -66,5 +66,7 @@ def answer(usermail, question, fileid=None):
         return {"answer": "I couldn't find anything about that in your transcripts.", "sources": []}
 
     reply = llm.complete(SYSTEM, f"Transcript excerpts:\n{context[:MAX_CONTEXT_CHARS]}\n\nQuestion: {question}")
+    # gpt-oss sometimes ignores the plain-text instruction; normalise its citation brackets and bold
+    reply = reply.replace("【", " (").replace("】", ")").replace("**", "")
     sources = [{"fileid": f, "filename": n, "start": s, "text": t} for f, n, s, t in hits]
     return {"answer": reply, "sources": sources}

@@ -81,9 +81,9 @@ const SigninPage: React.FC = () => {
             {isLoading ? 'Signing in…' : 'Sign in'}
           </button>
           {error && <p role="alert" className="font-read text-xs font-medium text-rec">{error}</p>}
-          <div className="border-t border-cream/20 pt-5 text-center">
-            <p className="font-read text-xs text-cream/70">Don&apos;t have an account?</p>
-            <Link href="/signup" className="mt-2 inline-block w-full border-2 border-cream py-2.5 text-xs font-bold uppercase tracking-wide text-cream transition-colors hover:bg-cream hover:text-ink">
+          <div className="border-t-2 border-ink/15 pt-5 text-center">
+            <p className="font-read text-xs text-ink/70">Don&apos;t have an account?</p>
+            <Link href="/signup" className="key-cream mt-2 w-full" data-magnetic>
               Create an account
             </Link>
           </div>

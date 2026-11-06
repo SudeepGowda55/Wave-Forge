@@ -36,7 +36,7 @@ const CHAPTERS = [
 ];
 
 const SPECS = [
-  { n: 4, label: "microservices", note: "gateway · auth · converter · notification" },
+  { n: 5, label: "microservices", note: "gateway · auth · converter · AI · notification" },
   { n: 2, label: "RabbitMQ queues", note: "file_uploaded · file_converted_notification" },
   { n: 2, label: "output formats", note: "MP3 · WAV" },
   { n: 48000, label: "Hz, top preset", note: "or 22,400 Hz, or any custom rate" },
@@ -98,7 +98,7 @@ export default function Home() {
         <div className="mx-auto w-full max-w-[90rem] px-4 pb-6 sm:px-8">
           <div className="plate grid gap-5 p-5 sm:p-6 lg:grid-cols-[1.4fr_1fr_auto] lg:items-center" data-reveal>
             <p className="max-w-xl text-base leading-relaxed sm:text-lg">
-              Upload a video, pick <b>MP3</b> or <b>WAV</b> and a sampling rate. Four microservices in Docker cut the audio out and email you the link.
+              Upload a video, pick <b>MP3</b> or <b>WAV</b> and a sampling rate. Five microservices in Docker cut the audio out, transcribe it and email you the link.
             </p>
             <div className="border-ink/20 font-read text-xs lg:border-l-2 lg:pl-5" aria-live="polite">
               <p className="tag mb-1">Simulation · not your file</p>

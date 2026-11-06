@@ -197,7 +197,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex max-w-[90rem] flex-wrap items-end justify-between gap-6 px-4 py-10 sm:px-8">
           <p className="title text-[clamp(3rem,10vw,8rem)]">End of reel.</p>
           <div className="space-y-2 pb-2 text-right font-read text-xs text-cream/60">
-            <p>Video in, audio out. Four services in Docker.</p>
+            <p>Video in, audio out. Five services in Docker.</p>
             <a href={SITE.repo} target="_blank" rel="noreferrer" className="text-cream underline-offset-4 hover:underline">
               Source on GitHub ↗
             </a>

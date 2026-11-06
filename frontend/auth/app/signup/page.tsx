@@ -97,7 +97,7 @@ const SignupPage: React.FC = () => {
             {isLoading ? 'Signing up…' : 'Sign up'}
           </button>
           {error && <p role="alert" className="font-read text-xs font-medium text-rec">{error}</p>}
-          <p className="font-read text-xs text-cream/70">Already have an account? <Link href="/signin" className="font-bold text-cream underline underline-offset-4">Sign in</Link></p>
+          <p className="font-read text-xs text-ink/70">Already have an account? <Link href="/signin" className="font-bold text-ink underline underline-offset-4">Sign in</Link></p>
         </form>
       </div>
       <div className="relative hidden overflow-hidden border-l-2 border-ink lg:block">
