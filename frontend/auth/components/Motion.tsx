@@ -101,12 +101,13 @@ export function TapeCounter({ to, className = "" }: { to: number; className?: st
 export function SpectrumBand({ bars = 64, className = "" }: { bars?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const els = Array.from(ref.current!.children) as HTMLElement[];
+    const el = ref.current!;
+    const els = Array.from(el.children) as HTMLElement[];
     if (reduced()) {
       els.forEach((b, i) => (b.style.transform = `scaleY(${0.15 + 0.25 * Math.abs(Math.sin(i * 0.4))})`));
       return;
     }
-    let lastY = scrollY, energy = 0, raf = 0;
+    let lastY = scrollY, energy = 0, raf = 0, visible = true;
     const lv = els.map(() => 0.1);
     const loop = (now: number) => {
       const v = Math.abs(scrollY - lastY);
@@ -124,8 +125,29 @@ export function SpectrumBand({ bars = 64, className = "" }: { bars?: number; cla
       });
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    // only tick while the analyser is on-screen and the tab is visible; re-entry resumes from the current scroll offset
+    const start = () => {
+      if (raf) return;
+      lastY = scrollY;
+      raf = requestAnimationFrame(loop);
+    };
+    const stop = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    };
+    const sync = () => (visible && !document.hidden ? start() : stop());
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      sync();
+    });
+    io.observe(el);
+    document.addEventListener("visibilitychange", sync);
+    sync();
+    return () => {
+      stop();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+    };
   }, [bars]);
   return (
     <div ref={ref} className={`flex items-end gap-[3px] ${className}`} role="img" aria-label="Spectrum analyser driven by scroll speed">
